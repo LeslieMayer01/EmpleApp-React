@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EmpleApp | Menú principal</title>
+    <!-- Bootstrap vía CDN: requiere Internet. -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <style>
+        body { background: #f3f6fa; color: #23334a; }
+        .navbar, .hero { background: #152e50; }
+        .hero { color: white; border-radius: 1rem; }
+        .hero p { color: #d7e4f5; }
+        .card { border-radius: .85rem; }
+        .btn-primary { --bs-btn-bg: #1958a6; --bs-btn-border-color: #1958a6; }
+        a { text-underline-offset: 3px; }
+        a:focus-visible, button:focus-visible { outline: 3px solid #e5a72f; outline-offset: 3px; }
+    </style>
+</head>
+<body>
+<a class="visually-hidden-focusable position-absolute bg-white p-3" href="#contenido">Ir al contenido</a>
+<!-- Menú principal adaptable a móviles mediante Bootstrap. -->
+<nav class="navbar navbar-expand-md navbar-dark" aria-label="Navegación principal">
+    <div class="container py-2">
+        <a class="navbar-brand fw-bold" th:href="@{/}">EmpleApp <span class="fw-normal small ms-2">Menú principal</span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu"
+                aria-controls="menu" aria-expanded="false" aria-label="Abrir navegación"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="menu">
+            <ul class="navbar-nav ms-auto gap-md-3">
+                <li class="nav-item"><a class="nav-link" href="#modulos">Módulos</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/}" aria-current="page">Inicio</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<main id="contenido" class="container py-4 py-md-5">
+    <section class="hero p-4 p-md-5 mb-5" aria-labelledby="bienvenida">
+        <h1 id="bienvenida" class="display-4 fw-bold">EmpleApp</h1>
+        <p class="lead mt-3 mb-4">Bienvenido. Selecciona un módulo para continuar.</p>
+        <a href="#modulos" class="btn btn-light fw-semibold">Ir al menú principal</a>
+    </section>
+<section id="modulos" aria-labelledby="titulo-modulos">
+        <h2 id="titulo-modulos" class="h3">Menú principal</h2>
+        <p class="text-secondary mb-4">Navega entre los módulos de EmpleApp.</p>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 01</span><h3 class="h5 mt-3 mb-4">Roles</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/rol/registrar}">Registrar<span class="visually-hidden"> Roles</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/rol/consultar}">Consultar<span class="visually-hidden"> Roles</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/rol/consultar-id}">Buscar por ID<span class="visually-hidden"> Roles</span></a><a th:href="@{/rol/actualizar}">Actualizar<span class="visually-hidden"> Roles</span></a><a class="text-danger" th:href="@{/rol/eliminar}">Eliminar<span class="visually-hidden"> Roles</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 02</span><h3 class="h5 mt-3 mb-4">Usuarios</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/usuario/registrar}">Registrar<span class="visually-hidden"> Usuarios</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/usuario/consultar}">Consultar<span class="visually-hidden"> Usuarios</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/usuario/consultar-id}">Buscar por ID<span class="visually-hidden"> Usuarios</span></a><a th:href="@{/usuario/actualizar}">Actualizar<span class="visually-hidden"> Usuarios</span></a><a class="text-danger" th:href="@{/usuario/eliminar}">Eliminar<span class="visually-hidden"> Usuarios</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 03</span><h3 class="h5 mt-3 mb-4">Empleadores</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/empleador/registrar}">Registrar<span class="visually-hidden"> Empleadores</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/empleador/consultar}">Consultar<span class="visually-hidden"> Empleadores</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/empleador/consultar-id}">Buscar por ID<span class="visually-hidden"> Empleadores</span></a><a th:href="@{/empleador/actualizar}">Actualizar<span class="visually-hidden"> Empleadores</span></a><a class="text-danger" th:href="@{/empleador/eliminar}">Eliminar<span class="visually-hidden"> Empleadores</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 04</span><h3 class="h5 mt-3 mb-4">Trabajadores</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/trabajador/registrar}">Registrar<span class="visually-hidden"> Trabajadores</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/trabajador/consultar}">Consultar<span class="visually-hidden"> Trabajadores</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/trabajador/consultar-id}">Buscar por ID<span class="visually-hidden"> Trabajadores</span></a><a th:href="@{/trabajador/actualizar}">Actualizar<span class="visually-hidden"> Trabajadores</span></a><a class="text-danger" th:href="@{/trabajador/eliminar}">Eliminar<span class="visually-hidden"> Trabajadores</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 05</span><h3 class="h5 mt-3 mb-4">Documentos del trabajador</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/documento-trabajador/registrar}">Registrar<span class="visually-hidden"> Documentos del trabajador</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/documento-trabajador/consultar}">Consultar<span class="visually-hidden"> Documentos del trabajador</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/documento-trabajador/consultar-id}">Buscar por ID<span class="visually-hidden"> Documentos del trabajador</span></a><a th:href="@{/documento-trabajador/actualizar}">Actualizar<span class="visually-hidden"> Documentos del trabajador</span></a><a class="text-danger" th:href="@{/documento-trabajador/eliminar}">Eliminar<span class="visually-hidden"> Documentos del trabajador</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 06</span><h3 class="h5 mt-3 mb-4">Tipos de servicio</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/tipo-servicio/registrar}">Registrar<span class="visually-hidden"> Tipos de servicio</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/tipo-servicio/consultar}">Consultar<span class="visually-hidden"> Tipos de servicio</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/tipo-servicio/consultar-id}">Buscar por ID<span class="visually-hidden"> Tipos de servicio</span></a><a th:href="@{/tipo-servicio/actualizar}">Actualizar<span class="visually-hidden"> Tipos de servicio</span></a><a class="text-danger" th:href="@{/tipo-servicio/eliminar}">Eliminar<span class="visually-hidden"> Tipos de servicio</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 07</span><h3 class="h5 mt-3 mb-4">Estados del servicio</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/estado-servicio/registrar}">Registrar<span class="visually-hidden"> Estados del servicio</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/estado-servicio/consultar}">Consultar<span class="visually-hidden"> Estados del servicio</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/estado-servicio/consultar-id}">Buscar por ID<span class="visually-hidden"> Estados del servicio</span></a><a th:href="@{/estado-servicio/actualizar}">Actualizar<span class="visually-hidden"> Estados del servicio</span></a><a class="text-danger" th:href="@{/estado-servicio/eliminar}">Eliminar<span class="visually-hidden"> Estados del servicio</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 08</span><h3 class="h5 mt-3 mb-4">Servicios</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/servicio/registrar}">Registrar<span class="visually-hidden"> Servicios</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/servicio/consultar}">Consultar<span class="visually-hidden"> Servicios</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/servicio/consultar-id}">Buscar por ID<span class="visually-hidden"> Servicios</span></a><a th:href="@{/servicio/actualizar}">Actualizar<span class="visually-hidden"> Servicios</span></a><a class="text-danger" th:href="@{/servicio/eliminar}">Eliminar<span class="visually-hidden"> Servicios</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 09</span><h3 class="h5 mt-3 mb-4">Postulaciones</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/postulacion/registrar}">Registrar<span class="visually-hidden"> Postulaciones</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/postulacion/consultar}">Consultar<span class="visually-hidden"> Postulaciones</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/postulacion/consultar-id}">Buscar por ID<span class="visually-hidden"> Postulaciones</span></a><a th:href="@{/postulacion/actualizar}">Actualizar<span class="visually-hidden"> Postulaciones</span></a><a class="text-danger" th:href="@{/postulacion/eliminar}">Eliminar<span class="visually-hidden"> Postulaciones</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 10</span><h3 class="h5 mt-3 mb-4">Contrataciones</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/contratacion/registrar}">Registrar<span class="visually-hidden"> Contrataciones</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/contratacion/consultar}">Consultar<span class="visually-hidden"> Contrataciones</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/contratacion/consultar-id}">Buscar por ID<span class="visually-hidden"> Contrataciones</span></a><a th:href="@{/contratacion/actualizar}">Actualizar<span class="visually-hidden"> Contrataciones</span></a><a class="text-danger" th:href="@{/contratacion/eliminar}">Eliminar<span class="visually-hidden"> Contrataciones</span></a></div>
+</div></article></div>
+<div class="col"><article class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+<span class="text-primary fw-semibold small">MÓDULO 11</span><h3 class="h5 mt-3 mb-4">Pagos</h3>
+<div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-primary btn-sm" th:href="@{/pago/registrar}">Registrar<span class="visually-hidden"> Pagos</span></a><a class="btn btn-outline-primary btn-sm" th:href="@{/pago/consultar}">Consultar<span class="visually-hidden"> Pagos</span></a></div>
+<div class="d-flex flex-wrap gap-3 small border-top pt-3"><a th:href="@{/pago/consultar-id}">Buscar por ID<span class="visually-hidden"> Pagos</span></a><a th:href="@{/pago/actualizar}">Actualizar<span class="visually-hidden"> Pagos</span></a><a class="text-danger" th:href="@{/pago/eliminar}">Eliminar<span class="visually-hidden"> Pagos</span></a></div>
+</div></article></div>
+        </div>
+    </section>
+</main>
+<footer class="container py-4 border-top text-secondary small">EmpleApp</footer>
+<!-- El bundle activa el botón desplegable de navegación en pantallas pequeñas. -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>

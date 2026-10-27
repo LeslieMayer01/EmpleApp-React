@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Actualizar · Contratacion | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de contratacion</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/contratacion/registrar}">Registrar</a>
+<a th:href="@{/contratacion/actualizar}">Actualizar</a>
+<a th:href="@{/contratacion/consultar}">Consultar todos</a>
+<a th:href="@{/contratacion/consultar-id}">Consultar por ID</a>
+<a th:href="@{/contratacion/eliminar}">Eliminar</a></nav>
+<h1>Actualizar · Contratacion</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- GET consulta o carga un registro sin modificar la base de datos. -->
+<form method="get" th:action="@{/contratacion/actualizar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" enctype="multipart/form-data" th:action="@{/contratacion/actualizar}" th:object="${registro}" th:if="${registro}">
+<!-- Los errores de BindingResult se muestran junto al formulario. -->
+<div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+<input type="hidden" th:field="*{idContratacion}">
+<div class="campo"><label for="servicio">Servicio *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="servicio" th:field="*{servicio.idServicio}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesServicio}" th:value="${opcion.idServicio}" th:text="${opcion.idServicio + ' · ' + opcion.idServicio}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('servicio')}" th:errors="*{servicio}"></small></div>
+<div class="campo"><label for="trabajador">Trabajador *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="trabajador" th:field="*{trabajador.idTrabajador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTrabajador}" th:value="${opcion.idTrabajador}" th:text="${opcion.idTrabajador + ' · ' + opcion.idTrabajador}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('trabajador')}" th:errors="*{trabajador}"></small></div>
+<div class="campo"><label for="fechaContratacion">Fecha Contratacion</label>
+<input id="fechaContratacion" type="datetime-local" th:field="*{fechaContratacion}" step="any">
+<small class="error" th:if="${#fields.hasErrors('fechaContratacion')}" th:errors="*{fechaContratacion}"></small></div>
+<div class="acciones"><button type="submit">Guardar cambios</button><a th:href="@{/contratacion/consultar}">Cancelar</a></div></form>
+</main></body></html>

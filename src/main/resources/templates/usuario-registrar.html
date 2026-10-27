@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Registrar · Usuario | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de usuario</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/usuario/registrar}">Registrar</a>
+<a th:href="@{/usuario/actualizar}">Actualizar</a>
+<a th:href="@{/usuario/consultar}">Consultar todos</a>
+<a th:href="@{/usuario/consultar-id}">Consultar por ID</a>
+<a th:href="@{/usuario/eliminar}">Eliminar</a></nav>
+<h1>Registrar · Usuario</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" enctype="multipart/form-data" th:action="@{/usuario/registrar}" th:object="${registro}">
+<!-- Los errores de BindingResult se muestran junto al formulario. -->
+<div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+<div class="campo"><label for="nombre">Nombre *</label>
+<input id="nombre" type="text" th:field="*{nombre}" required maxlength="100">
+<small class="error" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></small></div>
+<div class="campo"><label for="correo">Correo *</label>
+<input id="correo" type="email" th:field="*{correo}" required maxlength="100">
+<small class="error" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></small></div>
+<div class="campo"><label for="contrasenaHash">Hash de contraseña *</label>
+<input id="contrasenaHash" name="contrasenaHash" type="password" autocomplete="off" required maxlength="255"><small>Introduce un hash previamente generado. Este formulario no cifra contraseñas.</small>
+<small class="error" th:if="${#fields.hasErrors('contrasenaHash')}" th:errors="*{contrasenaHash}"></small></div>
+<div class="campo"><label for="rol">Rol *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="rol" th:field="*{rol.idRol}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesRol}" th:value="${opcion.idRol}" th:text="${opcion.idRol + ' · ' + opcion.nombreRol}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('rol')}" th:errors="*{rol}"></small></div>
+<div class="acciones"><button type="submit">Registrar</button><a th:href="@{/usuario/consultar}">Cancelar</a></div></form>
+</main></body></html>

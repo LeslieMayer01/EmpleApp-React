@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Registrar · Pago | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de pago</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/pago/registrar}">Registrar</a>
+<a th:href="@{/pago/actualizar}">Actualizar</a>
+<a th:href="@{/pago/consultar}">Consultar todos</a>
+<a th:href="@{/pago/consultar-id}">Consultar por ID</a>
+<a th:href="@{/pago/eliminar}">Eliminar</a></nav>
+<h1>Registrar · Pago</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" enctype="multipart/form-data" th:action="@{/pago/registrar}" th:object="${registro}">
+<!-- Los errores de BindingResult se muestran junto al formulario. -->
+<div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+<div class="campo"><label for="contratacion">Contratacion *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="contratacion" th:field="*{contratacion.idContratacion}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesContratacion}" th:value="${opcion.idContratacion}" th:text="${opcion.idContratacion + ' · ' + opcion.idContratacion}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('contratacion')}" th:errors="*{contratacion}"></small></div>
+<div class="campo"><label for="valorServicio">Valor Servicio</label>
+<input id="valorServicio" type="number" th:field="*{valorServicio}" step="0.01">
+<small class="error" th:if="${#fields.hasErrors('valorServicio')}" th:errors="*{valorServicio}"></small></div>
+<div class="campo"><label for="porcentajeComisionApp">Porcentaje Comision App</label>
+<input id="porcentajeComisionApp" type="number" th:field="*{porcentajeComisionApp}" step="0.01">
+<small class="error" th:if="${#fields.hasErrors('porcentajeComisionApp')}" th:errors="*{porcentajeComisionApp}"></small></div>
+<div class="campo"><label for="valorComision">Valor Comision</label>
+<input id="valorComision" type="number" th:field="*{valorComision}" step="0.01">
+<small class="error" th:if="${#fields.hasErrors('valorComision')}" th:errors="*{valorComision}"></small></div>
+<div class="campo"><label for="valorTrabajador">Valor Trabajador</label>
+<input id="valorTrabajador" type="number" th:field="*{valorTrabajador}" step="0.01">
+<small class="error" th:if="${#fields.hasErrors('valorTrabajador')}" th:errors="*{valorTrabajador}"></small></div>
+<div class="campo"><label for="fechaPago">Fecha Pago</label>
+<input id="fechaPago" type="datetime-local" th:field="*{fechaPago}" step="any">
+<small class="error" th:if="${#fields.hasErrors('fechaPago')}" th:errors="*{fechaPago}"></small></div>
+<div class="acciones"><button type="submit">Registrar</button><a th:href="@{/pago/consultar}">Cancelar</a></div></form>
+</main></body></html>

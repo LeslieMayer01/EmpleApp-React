@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Consultar todos · Documento Trabajador | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de documento trabajador</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/documento-trabajador/registrar}">Registrar</a>
+<a th:href="@{/documento-trabajador/actualizar}">Actualizar</a>
+<a th:href="@{/documento-trabajador/consultar}">Consultar todos</a>
+<a th:href="@{/documento-trabajador/consultar-id}">Consultar por ID</a>
+<a th:href="@{/documento-trabajador/eliminar}">Eliminar</a></nav>
+<h1>Consultar todos · Documento Trabajador</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<p th:if="${#lists.isEmpty(registros)}">No hay registros. <a th:href="@{/documento-trabajador/registrar}">Registrar el primero</a></p><div class="tabla" th:unless="${#lists.isEmpty(registros)}"><!-- th:each recorre los registros del modelo; th:text muestra sus valores como texto. -->
+<table><thead><tr><th scope="col">Id Documento</th><th scope="col">Trabajador</th><th scope="col">Tipo Documento</th><th scope="col">Fecha Carga</th><th scope="col">Acciones</th></tr></thead><tbody><tr th:each="registro : ${registros}"><td th:text="${registro.idDocumento}"></td><td th:text="${registro.trabajador == null ? '—' : registro.trabajador.idTrabajador}"></td><td th:text="${registro.tipoDocumento}"></td><td th:text="${registro.fechaCarga}"></td><td class="acciones"><a th:href="@{/documento-trabajador/detalle(id=${registro.idDocumento})}">Detalle</a><a th:href="@{/documento-trabajador/actualizar(id=${registro.idDocumento})}">Actualizar</a><a th:href="@{/documento-trabajador/eliminar(id=${registro.idDocumento})}">Eliminar</a></td></tr></tbody></table></div>
+</main></body></html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Actualizar · Trabajador | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de trabajador</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/trabajador/registrar}">Registrar</a>
+<a th:href="@{/trabajador/actualizar}">Actualizar</a>
+<a th:href="@{/trabajador/consultar}">Consultar todos</a>
+<a th:href="@{/trabajador/consultar-id}">Consultar por ID</a>
+<a th:href="@{/trabajador/eliminar}">Eliminar</a></nav>
+<h1>Actualizar · Trabajador</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- GET consulta o carga un registro sin modificar la base de datos. -->
+<form method="get" th:action="@{/trabajador/actualizar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" enctype="multipart/form-data" th:action="@{/trabajador/actualizar}" th:object="${registro}" th:if="${registro}">
+<!-- Los errores de BindingResult se muestran junto al formulario. -->
+<div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+<input type="hidden" th:field="*{idTrabajador}">
+<div class="campo"><label for="usuario">Usuario *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="usuario" th:field="*{usuario.idUsuario}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesUsuario}" th:value="${opcion.idUsuario}" th:text="${opcion.idUsuario + ' · ' + opcion.nombre}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('usuario')}" th:errors="*{usuario}"></small></div>
+<div class="campo"><label for="experiencia">Experiencia</label>
+<textarea id="experiencia" th:field="*{experiencia}" rows="4"></textarea>
+<small class="error" th:if="${#fields.hasErrors('experiencia')}" th:errors="*{experiencia}"></small></div>
+<div class="campo"><label for="disponibilidad">Disponibilidad</label>
+<input id="disponibilidad" type="text" th:field="*{disponibilidad}" maxlength="100">
+<small class="error" th:if="${#fields.hasErrors('disponibilidad')}" th:errors="*{disponibilidad}"></small></div>
+<div class="acciones"><button type="submit">Guardar cambios</button><a th:href="@{/trabajador/consultar}">Cancelar</a></div></form>
+</main></body></html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Consultar por ID · Usuario | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de usuario</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/usuario/registrar}">Registrar</a>
+<a th:href="@{/usuario/actualizar}">Actualizar</a>
+<a th:href="@{/usuario/consultar}">Consultar todos</a>
+<a th:href="@{/usuario/consultar-id}">Consultar por ID</a>
+<a th:href="@{/usuario/eliminar}">Eliminar</a></nav>
+<h1>Consultar por ID · Usuario</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- GET consulta o carga un registro sin modificar la base de datos. -->
+<form method="get" th:action="@{/usuario/consultar-id}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Buscar</button></form>
+</main></body></html>

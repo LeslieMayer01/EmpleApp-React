@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Consultar todos · Servicio | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de servicio</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/servicio/registrar}">Registrar</a>
+<a th:href="@{/servicio/actualizar}">Actualizar</a>
+<a th:href="@{/servicio/consultar}">Consultar todos</a>
+<a th:href="@{/servicio/consultar-id}">Consultar por ID</a>
+<a th:href="@{/servicio/eliminar}">Eliminar</a></nav>
+<h1>Consultar todos · Servicio</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<p th:if="${#lists.isEmpty(registros)}">No hay registros. <a th:href="@{/servicio/registrar}">Registrar el primero</a></p><div class="tabla" th:unless="${#lists.isEmpty(registros)}"><!-- th:each recorre los registros del modelo; th:text muestra sus valores como texto. -->
+<table><thead><tr><th scope="col">Id Servicio</th><th scope="col">Empleador</th><th scope="col">Tipo Servicio</th><th scope="col">Estado</th><th scope="col">Fecha</th><th scope="col">Hora Inicio</th><th scope="col">Hora Fin</th><th scope="col">Ubicacion</th><th scope="col">Valor Ofertado</th><th scope="col">Acciones</th></tr></thead><tbody><tr th:each="registro : ${registros}"><td th:text="${registro.idServicio}"></td><td th:text="${registro.empleador == null ? '—' : registro.empleador.idEmpleador}"></td><td th:text="${registro.tipoServicio == null ? '—' : registro.tipoServicio.idTipoServicio}"></td><td th:text="${registro.estado == null ? '—' : registro.estado.idEstado}"></td><td th:text="${registro.fecha}"></td><td th:text="${registro.horaInicio}"></td><td th:text="${registro.horaFin}"></td><td th:text="${registro.ubicacion}"></td><td th:text="${registro.valorOfertado}"></td><td class="acciones"><a th:href="@{/servicio/detalle(id=${registro.idServicio})}">Detalle</a><a th:href="@{/servicio/actualizar(id=${registro.idServicio})}">Actualizar</a><a th:href="@{/servicio/eliminar(id=${registro.idServicio})}">Eliminar</a></td></tr></tbody></table></div>
+</main></body></html>

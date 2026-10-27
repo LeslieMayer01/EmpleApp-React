@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Registrar · Documento Trabajador | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de documento trabajador</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/documento-trabajador/registrar}">Registrar</a>
+<a th:href="@{/documento-trabajador/actualizar}">Actualizar</a>
+<a th:href="@{/documento-trabajador/consultar}">Consultar todos</a>
+<a th:href="@{/documento-trabajador/consultar-id}">Consultar por ID</a>
+<a th:href="@{/documento-trabajador/eliminar}">Eliminar</a></nav>
+<h1>Registrar · Documento Trabajador</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" enctype="multipart/form-data" th:action="@{/documento-trabajador/registrar}" th:object="${registro}">
+<!-- Los errores de BindingResult se muestran junto al formulario. -->
+<div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+<div class="campo"><label for="trabajador">Trabajador *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="trabajador" th:field="*{trabajador.idTrabajador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTrabajador}" th:value="${opcion.idTrabajador}" th:text="${opcion.idTrabajador + ' · ' + opcion.idTrabajador}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('trabajador')}" th:errors="*{trabajador}"></small></div>
+<div class="campo"><label for="tipoDocumento">Tipo Documento</label>
+<input id="tipoDocumento" type="text" th:field="*{tipoDocumento}" maxlength="100">
+<small class="error" th:if="${#fields.hasErrors('tipoDocumento')}" th:errors="*{tipoDocumento}"></small></div>
+<div class="campo"><label for="archivoBlob">Archivo Blob</label>
+<input id="archivoBlob" type="file" name="archivo"><small>Al actualizar, deja este campo vacío para conservar el archivo.</small>
+<small class="error" th:if="${#fields.hasErrors('archivoBlob')}" th:errors="*{archivoBlob}"></small></div>
+<div class="campo"><label for="fechaCarga">Fecha Carga</label>
+<input id="fechaCarga" type="datetime-local" th:field="*{fechaCarga}" step="any">
+<small class="error" th:if="${#fields.hasErrors('fechaCarga')}" th:errors="*{fechaCarga}"></small></div>
+<div class="acciones"><button type="submit">Registrar</button><a th:href="@{/documento-trabajador/consultar}">Cancelar</a></div></form>
+</main></body></html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Eliminar · Contratacion | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de contratacion</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/contratacion/registrar}">Registrar</a>
+<a th:href="@{/contratacion/actualizar}">Actualizar</a>
+<a th:href="@{/contratacion/consultar}">Consultar todos</a>
+<a th:href="@{/contratacion/consultar-id}">Consultar por ID</a>
+<a th:href="@{/contratacion/eliminar}">Eliminar</a></nav>
+<h1>Eliminar · Contratacion</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- GET consulta o carga un registro sin modificar la base de datos. -->
+<form method="get" th:action="@{/contratacion/eliminar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><section th:if="${registro}"><dl><dt>Id Contratacion</dt><dd th:text="${registro.idContratacion}"></dd>
+<dt>Servicio</dt><dd th:text="${registro.servicio == null ? '—' : registro.servicio.idServicio}"></dd>
+<dt>Trabajador</dt><dd th:text="${registro.trabajador == null ? '—' : registro.trabajador.idTrabajador}"></dd>
+<dt>Fecha Contratacion</dt><dd th:text="${registro.fechaContratacion}"></dd></dl><p>Confirma la eliminación de este registro.</p><!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" th:action="@{/contratacion/eliminar}"><input type="hidden" name="id" th:value="${registro.idContratacion}"><button class="peligro" type="submit">Confirmar eliminación</button><a th:href="@{/contratacion/consultar}">Cancelar</a></form></section>
+</main></body></html>

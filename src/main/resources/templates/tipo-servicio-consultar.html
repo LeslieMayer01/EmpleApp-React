@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Consultar todos · Tipo Servicio | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de tipo servicio</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/tipo-servicio/registrar}">Registrar</a>
+<a th:href="@{/tipo-servicio/actualizar}">Actualizar</a>
+<a th:href="@{/tipo-servicio/consultar}">Consultar todos</a>
+<a th:href="@{/tipo-servicio/consultar-id}">Consultar por ID</a>
+<a th:href="@{/tipo-servicio/eliminar}">Eliminar</a></nav>
+<h1>Consultar todos · Tipo Servicio</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<p th:if="${#lists.isEmpty(registros)}">No hay registros. <a th:href="@{/tipo-servicio/registrar}">Registrar el primero</a></p><div class="tabla" th:unless="${#lists.isEmpty(registros)}"><!-- th:each recorre los registros del modelo; th:text muestra sus valores como texto. -->
+<table><thead><tr><th scope="col">Id Tipo Servicio</th><th scope="col">Nombre Tipo</th><th scope="col">Descripcion</th><th scope="col">Acciones</th></tr></thead><tbody><tr th:each="registro : ${registros}"><td th:text="${registro.idTipoServicio}"></td><td th:text="${registro.nombreTipo}"></td><td th:text="${registro.descripcion}"></td><td class="acciones"><a th:href="@{/tipo-servicio/detalle(id=${registro.idTipoServicio})}">Detalle</a><a th:href="@{/tipo-servicio/actualizar(id=${registro.idTipoServicio})}">Actualizar</a><a th:href="@{/tipo-servicio/eliminar(id=${registro.idTipoServicio})}">Eliminar</a></td></tr></tbody></table></div>
+</main></body></html>

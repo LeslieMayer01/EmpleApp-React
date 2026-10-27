@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Eliminar · Servicio | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de servicio</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/servicio/registrar}">Registrar</a>
+<a th:href="@{/servicio/actualizar}">Actualizar</a>
+<a th:href="@{/servicio/consultar}">Consultar todos</a>
+<a th:href="@{/servicio/consultar-id}">Consultar por ID</a>
+<a th:href="@{/servicio/eliminar}">Eliminar</a></nav>
+<h1>Eliminar · Servicio</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- GET consulta o carga un registro sin modificar la base de datos. -->
+<form method="get" th:action="@{/servicio/eliminar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><section th:if="${registro}"><dl><dt>Id Servicio</dt><dd th:text="${registro.idServicio}"></dd>
+<dt>Empleador</dt><dd th:text="${registro.empleador == null ? '—' : registro.empleador.idEmpleador}"></dd>
+<dt>Tipo Servicio</dt><dd th:text="${registro.tipoServicio == null ? '—' : registro.tipoServicio.idTipoServicio}"></dd>
+<dt>Estado</dt><dd th:text="${registro.estado == null ? '—' : registro.estado.idEstado}"></dd>
+<dt>Fecha</dt><dd th:text="${registro.fecha}"></dd>
+<dt>Hora Inicio</dt><dd th:text="${registro.horaInicio}"></dd>
+<dt>Hora Fin</dt><dd th:text="${registro.horaFin}"></dd>
+<dt>Ubicacion</dt><dd th:text="${registro.ubicacion}"></dd>
+<dt>Valor Ofertado</dt><dd th:text="${registro.valorOfertado}"></dd></dl><p>Confirma la eliminación de este registro.</p><!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" th:action="@{/servicio/eliminar}"><input type="hidden" name="id" th:value="${registro.idServicio}"><button class="peligro" type="submit">Confirmar eliminación</button><a th:href="@{/servicio/consultar}">Cancelar</a></form></section>
+</main></body></html>

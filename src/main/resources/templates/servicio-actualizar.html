@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Actualizar · Servicio | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de servicio</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/servicio/registrar}">Registrar</a>
+<a th:href="@{/servicio/actualizar}">Actualizar</a>
+<a th:href="@{/servicio/consultar}">Consultar todos</a>
+<a th:href="@{/servicio/consultar-id}">Consultar por ID</a>
+<a th:href="@{/servicio/eliminar}">Eliminar</a></nav>
+<h1>Actualizar · Servicio</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- GET consulta o carga un registro sin modificar la base de datos. -->
+<form method="get" th:action="@{/servicio/actualizar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" enctype="multipart/form-data" th:action="@{/servicio/actualizar}" th:object="${registro}" th:if="${registro}">
+<!-- Los errores de BindingResult se muestran junto al formulario. -->
+<div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+<input type="hidden" th:field="*{idServicio}">
+<div class="campo"><label for="empleador">Empleador *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="empleador" th:field="*{empleador.idEmpleador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesEmpleador}" th:value="${opcion.idEmpleador}" th:text="${opcion.idEmpleador + ' · ' + opcion.idEmpleador}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('empleador')}" th:errors="*{empleador}"></small></div>
+<div class="campo"><label for="tipoServicio">Tipo Servicio *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="tipoServicio" th:field="*{tipoServicio.idTipoServicio}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTipoServicio}" th:value="${opcion.idTipoServicio}" th:text="${opcion.idTipoServicio + ' · ' + opcion.nombreTipo}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('tipoServicio')}" th:errors="*{tipoServicio}"></small></div>
+<div class="campo"><label for="estado">Estado *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="estado" th:field="*{estado.idEstado}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesEstadoServicio}" th:value="${opcion.idEstado}" th:text="${opcion.idEstado + ' · ' + opcion.nombreEstado}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('estado')}" th:errors="*{estado}"></small></div>
+<div class="campo"><label for="fecha">Fecha</label>
+<input id="fecha" type="date" th:field="*{fecha}">
+<small class="error" th:if="${#fields.hasErrors('fecha')}" th:errors="*{fecha}"></small></div>
+<div class="campo"><label for="horaInicio">Hora Inicio</label>
+<input id="horaInicio" type="time" th:field="*{horaInicio}" step="any">
+<small class="error" th:if="${#fields.hasErrors('horaInicio')}" th:errors="*{horaInicio}"></small></div>
+<div class="campo"><label for="horaFin">Hora Fin</label>
+<input id="horaFin" type="time" th:field="*{horaFin}" step="any">
+<small class="error" th:if="${#fields.hasErrors('horaFin')}" th:errors="*{horaFin}"></small></div>
+<div class="campo"><label for="ubicacion">Ubicacion</label>
+<input id="ubicacion" type="text" th:field="*{ubicacion}" maxlength="255">
+<small class="error" th:if="${#fields.hasErrors('ubicacion')}" th:errors="*{ubicacion}"></small></div>
+<div class="campo"><label for="valorOfertado">Valor Ofertado</label>
+<input id="valorOfertado" type="number" th:field="*{valorOfertado}" step="0.01">
+<small class="error" th:if="${#fields.hasErrors('valorOfertado')}" th:errors="*{valorOfertado}"></small></div>
+<div class="acciones"><button type="submit">Guardar cambios</button><a th:href="@{/servicio/consultar}">Cancelar</a></div></form>
+</main></body></html>

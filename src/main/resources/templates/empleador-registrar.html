@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Registrar · Empleador | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de empleador</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/empleador/registrar}">Registrar</a>
+<a th:href="@{/empleador/actualizar}">Actualizar</a>
+<a th:href="@{/empleador/consultar}">Consultar todos</a>
+<a th:href="@{/empleador/consultar-id}">Consultar por ID</a>
+<a th:href="@{/empleador/eliminar}">Eliminar</a></nav>
+<h1>Registrar · Empleador</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" enctype="multipart/form-data" th:action="@{/empleador/registrar}" th:object="${registro}">
+<!-- Los errores de BindingResult se muestran junto al formulario. -->
+<div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
+<div class="campo"><label for="usuario">Usuario *</label>
+<!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
+<select id="usuario" th:field="*{usuario.idUsuario}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesUsuario}" th:value="${opcion.idUsuario}" th:text="${opcion.idUsuario + ' · ' + opcion.nombre}"></option></select>
+<small class="error" th:if="${#fields.hasErrors('usuario')}" th:errors="*{usuario}"></small></div>
+<div class="campo"><label for="direccion">Direccion</label>
+<input id="direccion" type="text" th:field="*{direccion}" maxlength="255">
+<small class="error" th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}"></small></div>
+<div class="campo"><label for="telefono">Telefono</label>
+<input id="telefono" type="tel" th:field="*{telefono}" maxlength="20">
+<small class="error" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></small></div>
+<div class="acciones"><button type="submit">Registrar</button><a th:href="@{/empleador/consultar}">Cancelar</a></div></form>
+</main></body></html>

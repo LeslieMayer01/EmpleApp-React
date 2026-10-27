@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Detalle · Empleador | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de empleador</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/empleador/registrar}">Registrar</a>
+<a th:href="@{/empleador/actualizar}">Actualizar</a>
+<a th:href="@{/empleador/consultar}">Consultar todos</a>
+<a th:href="@{/empleador/consultar-id}">Consultar por ID</a>
+<a th:href="@{/empleador/eliminar}">Eliminar</a></nav>
+<h1>Detalle · Empleador</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<section th:if="${registro}"><dl><dt>Id Empleador</dt><dd th:text="${registro.idEmpleador}"></dd>
+<dt>Usuario</dt><dd th:text="${registro.usuario == null ? '—' : registro.usuario.idUsuario}"></dd>
+<dt>Direccion</dt><dd th:text="${registro.direccion}"></dd>
+<dt>Telefono</dt><dd th:text="${registro.telefono}"></dd></dl><div class="acciones"><a th:href="@{/empleador/actualizar(id=${registro.idEmpleador})}">Actualizar</a><a th:href="@{/empleador/eliminar(id=${registro.idEmpleador})}">Eliminar</a></div></section>
+</main></body></html>

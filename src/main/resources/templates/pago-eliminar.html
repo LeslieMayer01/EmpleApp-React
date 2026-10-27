@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!-- Vista Thymeleaf: las rutas y los datos se resuelven en el controlador antes de mostrar el HTML. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Eliminar · Pago | EmpleApp</title><link rel="stylesheet" th:href="@{/css/empleapp.css}"></head>
+<body><header><a th:href="@{/}">EmpleApp</a><span>Gestión de pago</span></header><main>
+<!-- Navegación entre las operaciones de la entidad. El enlace EmpleApp vuelve al inicio. -->
+<nav aria-label="Operaciones"><a th:href="@{/pago/registrar}">Registrar</a>
+<a th:href="@{/pago/actualizar}">Actualizar</a>
+<a th:href="@{/pago/consultar}">Consultar todos</a>
+<a th:href="@{/pago/consultar-id}">Consultar por ID</a>
+<a th:href="@{/pago/eliminar}">Eliminar</a></nav>
+<h1>Eliminar · Pago</h1>
+<p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+<!-- GET consulta o carga un registro sin modificar la base de datos. -->
+<form method="get" th:action="@{/pago/eliminar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><section th:if="${registro}"><dl><dt>Id Pago</dt><dd th:text="${registro.idPago}"></dd>
+<dt>Contratacion</dt><dd th:text="${registro.contratacion == null ? '—' : registro.contratacion.idContratacion}"></dd>
+<dt>Valor Servicio</dt><dd th:text="${registro.valorServicio}"></dd>
+<dt>Porcentaje Comision App</dt><dd th:text="${registro.porcentajeComisionApp}"></dd>
+<dt>Valor Comision</dt><dd th:text="${registro.valorComision}"></dd>
+<dt>Valor Trabajador</dt><dd th:text="${registro.valorTrabajador}"></dd>
+<dt>Fecha Pago</dt><dd th:text="${registro.fechaPago}"></dd></dl><p>Confirma la eliminación de este registro.</p><!-- POST envía el formulario al método correspondiente del controlador. -->
+<form method="post" th:action="@{/pago/eliminar}"><input type="hidden" name="id" th:value="${registro.idPago}"><button class="peligro" type="submit">Confirmar eliminación</button><a th:href="@{/pago/consultar}">Cancelar</a></form></section>
+</main></body></html>
