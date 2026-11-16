@@ -13,7 +13,7 @@
 <p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
 <!-- GET consulta o carga un registro sin modificar la base de datos. -->
 <form method="get" th:action="@{/documento-trabajador/eliminar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><section th:if="${registro}"><dl><dt>Id Documento</dt><dd th:text="${registro.idDocumento}"></dd>
-<dt>Trabajador</dt><dd th:text="${registro.trabajador == null ? '—' : registro.trabajador.idTrabajador}"></dd>
+<dt>Trabajador</dt><dd th:text="${registro.trabajador == null ? '—' : registro.trabajador.etiqueta}"></dd>
 <dt>Tipo Documento</dt><dd th:text="${registro.tipoDocumento}"></dd>
 <dt>Fecha Carga</dt><dd th:text="${registro.fechaCarga}"></dd></dl><p>Confirma la eliminación de este registro.</p><!-- POST envía el formulario al método correspondiente del controlador. -->
 <form method="post" th:action="@{/documento-trabajador/eliminar}"><input type="hidden" name="id" th:value="${registro.idDocumento}"><button class="peligro" type="submit">Confirmar eliminación</button><a th:href="@{/documento-trabajador/consultar}">Cancelar</a></form></section>

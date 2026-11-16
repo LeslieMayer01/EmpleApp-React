@@ -17,30 +17,30 @@
 <div class="error" role="alert" th:if="${#fields.hasAnyErrors()}"><p>Revisa los datos del formulario.</p><ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}"></li></ul></div>
 <div class="campo"><label for="empleador">Empleador *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="empleador" th:field="*{empleador.idEmpleador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesEmpleador}" th:value="${opcion.idEmpleador}" th:text="${opcion.idEmpleador + ' · ' + opcion.idEmpleador}"></option></select>
+<select id="empleador" th:field="*{empleador.idEmpleador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesEmpleador}" th:value="${opcion.idEmpleador}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('empleador')}" th:errors="*{empleador}"></small></div>
 <div class="campo"><label for="tipoServicio">Tipo Servicio *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="tipoServicio" th:field="*{tipoServicio.idTipoServicio}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTipoServicio}" th:value="${opcion.idTipoServicio}" th:text="${opcion.idTipoServicio + ' · ' + opcion.nombreTipo}"></option></select>
+<select id="tipoServicio" th:field="*{tipoServicio.idTipoServicio}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTipoServicio}" th:value="${opcion.idTipoServicio}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('tipoServicio')}" th:errors="*{tipoServicio}"></small></div>
 <div class="campo"><label for="estado">Estado *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="estado" th:field="*{estado.idEstado}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesEstadoServicio}" th:value="${opcion.idEstado}" th:text="${opcion.idEstado + ' · ' + opcion.nombreEstado}"></option></select>
+<select id="estado" th:field="*{estado.idEstado}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesEstadoServicio}" th:value="${opcion.idEstado}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('estado')}" th:errors="*{estado}"></small></div>
 <div class="campo"><label for="fecha">Fecha</label>
-<input id="fecha" type="date" th:field="*{fecha}">
+<input id="fecha" type="date" th:field="*{fecha}" required>
 <small class="error" th:if="${#fields.hasErrors('fecha')}" th:errors="*{fecha}"></small></div>
 <div class="campo"><label for="horaInicio">Hora Inicio</label>
-<input id="horaInicio" type="time" th:field="*{horaInicio}" step="any">
+<input id="horaInicio" type="time" th:field="*{horaInicio}" required step="any">
 <small class="error" th:if="${#fields.hasErrors('horaInicio')}" th:errors="*{horaInicio}"></small></div>
 <div class="campo"><label for="horaFin">Hora Fin</label>
-<input id="horaFin" type="time" th:field="*{horaFin}" step="any">
+<input id="horaFin" type="time" th:field="*{horaFin}" required step="any">
 <small class="error" th:if="${#fields.hasErrors('horaFin')}" th:errors="*{horaFin}"></small></div>
 <div class="campo"><label for="ubicacion">Ubicacion</label>
-<input id="ubicacion" type="text" th:field="*{ubicacion}" maxlength="255">
+<input id="ubicacion" type="text" th:field="*{ubicacion}" required maxlength="255">
 <small class="error" th:if="${#fields.hasErrors('ubicacion')}" th:errors="*{ubicacion}"></small></div>
 <div class="campo"><label for="valorOfertado">Valor Ofertado</label>
-<input id="valorOfertado" type="number" th:field="*{valorOfertado}" step="0.01">
+<input id="valorOfertado" type="number" th:field="*{valorOfertado}" required step="0.01" min="0.01" max="99999999.99">
 <small class="error" th:if="${#fields.hasErrors('valorOfertado')}" th:errors="*{valorOfertado}"></small></div>
 <div class="acciones"><button type="submit">Registrar</button><a th:href="@{/servicio/consultar}">Cancelar</a></div></form>
-</main></body></html>
+</main><script defer th:src="@{/js/validaciones.js}"></script></body></html>

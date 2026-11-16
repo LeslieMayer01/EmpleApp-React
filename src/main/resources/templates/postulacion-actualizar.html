@@ -19,11 +19,11 @@
 <input type="hidden" th:field="*{idPostulacion}">
 <div class="campo"><label for="servicio">Servicio *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="servicio" th:field="*{servicio.idServicio}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesServicio}" th:value="${opcion.idServicio}" th:text="${opcion.idServicio + ' · ' + opcion.idServicio}"></option></select>
+<select id="servicio" th:field="*{servicio.idServicio}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesServicio}" th:value="${opcion.idServicio}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('servicio')}" th:errors="*{servicio}"></small></div>
 <div class="campo"><label for="trabajador">Trabajador *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="trabajador" th:field="*{trabajador.idTrabajador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTrabajador}" th:value="${opcion.idTrabajador}" th:text="${opcion.idTrabajador + ' · ' + opcion.idTrabajador}"></option></select>
+<select id="trabajador" th:field="*{trabajador.idTrabajador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTrabajador}" th:value="${opcion.idTrabajador}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('trabajador')}" th:errors="*{trabajador}"></small></div>
 <div class="campo"><label for="fechaPostulacion">Fecha Postulacion</label>
 <input id="fechaPostulacion" type="datetime-local" th:field="*{fechaPostulacion}" step="any">

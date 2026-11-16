@@ -24,6 +24,10 @@ public class PagoServicioImpl implements IPagoServicio {
         if (entidad.getIdPago() != null) {
             buscarPago(entidad.getIdPago());
         }
+        try { entidad.calcularImportes(); }
+        catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
         return repositorio.save(entidad);
     }
 

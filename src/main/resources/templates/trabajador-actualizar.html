@@ -19,7 +19,7 @@
 <input type="hidden" th:field="*{idTrabajador}">
 <div class="campo"><label for="usuario">Usuario *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="usuario" th:field="*{usuario.idUsuario}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesUsuario}" th:value="${opcion.idUsuario}" th:text="${opcion.idUsuario + ' · ' + opcion.nombre}"></option></select>
+<select id="usuario" th:field="*{usuario.idUsuario}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesUsuario}" th:value="${opcion.idUsuario}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('usuario')}" th:errors="*{usuario}"></small></div>
 <div class="campo"><label for="experiencia">Experiencia</label>
 <textarea id="experiencia" th:field="*{experiencia}" rows="4"></textarea>

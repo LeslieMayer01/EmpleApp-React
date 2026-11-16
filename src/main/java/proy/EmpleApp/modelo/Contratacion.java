@@ -31,6 +31,10 @@ public class Contratacion {
     @Column(name = "fecha_contratacion")
     private LocalDateTime fechaContratacion;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idContratacion + " - " + ((trabajador == null ? "Sin trabajador" : trabajador.getEtiqueta()) + " / " + (servicio == null ? "Sin servicio" : servicio.getEtiqueta())); }
+
     public Contratacion() { }
 
     public Integer getIdContratacion() { return idContratacion; }

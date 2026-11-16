@@ -14,5 +14,5 @@
 <section th:if="${registro}"><dl><dt>Id Usuario</dt><dd th:text="${registro.idUsuario}"></dd>
 <dt>Nombre</dt><dd th:text="${registro.nombre}"></dd>
 <dt>Correo</dt><dd th:text="${registro.correo}"></dd>
-<dt>Rol</dt><dd th:text="${registro.rol == null ? '—' : registro.rol.idRol}"></dd></dl><div class="acciones"><a th:href="@{/usuario/actualizar(id=${registro.idUsuario})}">Actualizar</a><a th:href="@{/usuario/eliminar(id=${registro.idUsuario})}">Eliminar</a></div></section>
+<dt>Rol</dt><dd th:text="${registro.rol == null ? '—' : registro.rol.etiqueta}"></dd></dl><div class="acciones"><a th:href="@{/usuario/actualizar(id=${registro.idUsuario})}">Actualizar</a><a th:href="@{/usuario/eliminar(id=${registro.idUsuario})}">Eliminar</a></div></section>
 </main></body></html>

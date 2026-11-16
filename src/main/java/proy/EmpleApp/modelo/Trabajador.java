@@ -29,6 +29,10 @@ public class Trabajador {
     @Column(name = "disponibilidad", length = 100)
     private String disponibilidad;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idTrabajador + " - " + (usuario == null ? "Sin usuario" : usuario.getNombre()); }
+
     public Trabajador() { }
 
     public Integer getIdTrabajador() { return idTrabajador; }

@@ -40,16 +40,20 @@ public class Usuario {
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idUsuario + " - " + (nombre); }
+
     public Usuario() { }
 
     public Integer getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Integer idUsuario) { this.idUsuario = idUsuario; }
 
     public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre == null ? null : nombre.strip(); }
 
     public String getCorreo() { return correo; }
-    public void setCorreo(String correo) { this.correo = correo; }
+    public void setCorreo(String correo) { this.correo = correo == null ? null : correo.strip().toLowerCase(java.util.Locale.ROOT); }
 
     public String getContrasenaHash() { return contrasenaHash; }
     public void setContrasenaHash(String contrasenaHash) { this.contrasenaHash = contrasenaHash; }

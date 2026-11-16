@@ -36,9 +36,9 @@ class PlantillasTests {
         Trabajador trabajador = new Trabajador(); trabajador.setUsuario(usuario); em.persist(trabajador);
         TipoServicio tipo = new TipoServicio(); tipo.setNombreTipo("Aseo"); em.persist(tipo);
         EstadoServicio estado = new EstadoServicio(); estado.setNombreEstado("Pendiente"); em.persist(estado);
-        Servicio servicio = new Servicio(); servicio.setEmpleador(empleador); servicio.setTipoServicio(tipo); servicio.setEstado(estado); em.persist(servicio);
+        Servicio servicio = new Servicio(); servicio.setEmpleador(empleador); servicio.setTipoServicio(tipo); servicio.setEstado(estado); servicio.setFecha(java.time.LocalDate.of(2026, 12, 1)); servicio.setHoraInicio(java.time.LocalTime.of(8, 0)); servicio.setHoraFin(java.time.LocalTime.of(12, 0)); servicio.setUbicacion("Direccion de prueba"); servicio.setValorOfertado(new java.math.BigDecimal("100000.00")); em.persist(servicio);
         Contratacion contratacion = new Contratacion(); contratacion.setServicio(servicio); contratacion.setTrabajador(trabajador); em.persist(contratacion);
-        Pago pago = new Pago(); pago.setContratacion(contratacion); em.persist(pago);
+        Pago pago = new Pago(); pago.setContratacion(contratacion); pago.setValorServicio(new java.math.BigDecimal("100000.00")); em.persist(pago);
         Postulacion postulacion = new Postulacion(); postulacion.setServicio(servicio); postulacion.setTrabajador(trabajador); em.persist(postulacion);
         DocumentoTrabajador documento = new DocumentoTrabajador(); documento.setTrabajador(trabajador); em.persist(documento);
         em.flush();
@@ -100,5 +100,34 @@ class PlantillasTests {
     void idInexistenteMuestraMensaje() throws Exception {
         mvc.perform(get("/rol/consultar-id").param("id", "2147483647"))
             .andExpect(status().isOk()).andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    void muestraNombresYRechazaHorarioInvertidoEnFormulario() throws Exception {
+        mvc.perform(get("/servicio/registrar"))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("Ana")));
+        mvc.perform(get("/contratacion/consultar"))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("Ana")));
+        mvc.perform(post("/servicio/registrar")
+            .param("empleador.idEmpleador", ids.get("empleador").toString())
+            .param("tipoServicio.idTipoServicio", ids.get("tipo-servicio").toString())
+            .param("estado.idEstado", ids.get("estado-servicio").toString())
+            .param("fecha", "2026-12-01").param("horaInicio", "14:00").param("horaFin", "10:00"))
+            .andExpect(status().isOk())
+            .andExpect(model().attributeHasFieldErrors("registro", "horarioValido"));
+    }
+
+    @Test
+    void formularioPagoNoPermiteManipularComision() throws Exception {
+        mvc.perform(post("/pago/registrar")
+            .param("contratacion.idContratacion", ids.get("contratacion").toString())
+            .param("valorServicio", "100.05")
+            .param("porcentajeComisionApp", "99").param("valorComision", "0").param("valorTrabajador", "0"))
+            .andExpect(status().is3xxRedirection());
+        em.flush(); em.clear();
+        Pago p = em.createQuery("select p from Pago p where p.valorServicio = 100.05", Pago.class).getSingleResult();
+        assertEquals(new java.math.BigDecimal("10.00"), p.getPorcentajeComisionApp());
+        assertEquals(new java.math.BigDecimal("10.01"), p.getValorComision());
+        assertEquals(new java.math.BigDecimal("90.04"), p.getValorTrabajador());
     }
 }

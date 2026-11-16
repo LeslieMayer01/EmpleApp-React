@@ -12,9 +12,9 @@
 <h1>Detalle · Servicio</h1>
 <p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
 <section th:if="${registro}"><dl><dt>Id Servicio</dt><dd th:text="${registro.idServicio}"></dd>
-<dt>Empleador</dt><dd th:text="${registro.empleador == null ? '—' : registro.empleador.idEmpleador}"></dd>
-<dt>Tipo Servicio</dt><dd th:text="${registro.tipoServicio == null ? '—' : registro.tipoServicio.idTipoServicio}"></dd>
-<dt>Estado</dt><dd th:text="${registro.estado == null ? '—' : registro.estado.idEstado}"></dd>
+<dt>Empleador</dt><dd th:text="${registro.empleador == null ? '—' : registro.empleador.etiqueta}"></dd>
+<dt>Tipo Servicio</dt><dd th:text="${registro.tipoServicio == null ? '—' : registro.tipoServicio.etiqueta}"></dd>
+<dt>Estado</dt><dd th:text="${registro.estado == null ? '—' : registro.estado.etiqueta}"></dd>
 <dt>Fecha</dt><dd th:text="${registro.fecha}"></dd>
 <dt>Hora Inicio</dt><dd th:text="${registro.horaInicio}"></dd>
 <dt>Hora Fin</dt><dd th:text="${registro.horaFin}"></dd>

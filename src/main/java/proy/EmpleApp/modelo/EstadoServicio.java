@@ -21,6 +21,10 @@ public class EstadoServicio {
     @Column(name = "nombre_estado", nullable = false, length = 50)
     private String nombreEstado;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idEstado + " - " + (nombreEstado); }
+
     public EstadoServicio() { }
 
     public Integer getIdEstado() { return idEstado; }

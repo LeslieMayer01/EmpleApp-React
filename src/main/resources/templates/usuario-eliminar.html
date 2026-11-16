@@ -15,6 +15,6 @@
 <form method="get" th:action="@{/usuario/eliminar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><section th:if="${registro}"><dl><dt>Id Usuario</dt><dd th:text="${registro.idUsuario}"></dd>
 <dt>Nombre</dt><dd th:text="${registro.nombre}"></dd>
 <dt>Correo</dt><dd th:text="${registro.correo}"></dd>
-<dt>Rol</dt><dd th:text="${registro.rol == null ? '—' : registro.rol.idRol}"></dd></dl><p>Confirma la eliminación de este registro.</p><!-- POST envía el formulario al método correspondiente del controlador. -->
+<dt>Rol</dt><dd th:text="${registro.rol == null ? '—' : registro.rol.etiqueta}"></dd></dl><p>Confirma la eliminación de este registro.</p><!-- POST envía el formulario al método correspondiente del controlador. -->
 <form method="post" th:action="@{/usuario/eliminar}"><input type="hidden" name="id" th:value="${registro.idUsuario}"><button class="peligro" type="submit">Confirmar eliminación</button><a th:href="@{/usuario/consultar}">Cancelar</a></form></section>
 </main></body></html>

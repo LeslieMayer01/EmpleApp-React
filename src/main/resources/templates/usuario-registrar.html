@@ -26,7 +26,7 @@
 <small class="error" th:if="${#fields.hasErrors('contrasenaHash')}" th:errors="*{contrasenaHash}"></small></div>
 <div class="campo"><label for="rol">Rol *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="rol" th:field="*{rol.idRol}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesRol}" th:value="${opcion.idRol}" th:text="${opcion.idRol + ' · ' + opcion.nombreRol}"></option></select>
+<select id="rol" th:field="*{rol.idRol}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesRol}" th:value="${opcion.idRol}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('rol')}" th:errors="*{rol}"></small></div>
 <div class="acciones"><button type="submit">Registrar</button><a th:href="@{/usuario/consultar}">Cancelar</a></div></form>
 </main></body></html>

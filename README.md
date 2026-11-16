@@ -94,3 +94,35 @@ estan finalizados y sus pagos descuentan una comision del 10 %. Los correos usan
 SHA-256 de demostracion; el proyecto no implementa autenticacion.
 
 La consulta al final del script muestra el total de registros por tabla.
+
+## Validaciones y revision de integridad
+
+Los servicios se programan en una sola fecha. Son obligatorios la fecha, ambas horas, la ubicacion y el valor; la hora final debe ser posterior a la inicial.
+No se soportan turnos que crucen la medianoche. El valor ofertado
+debe ser positivo y tener hasta ocho enteros y dos decimales.
+
+El pago requiere un importe positivo. La comision fija provisional es del 10 %,
+conforme a los datos de ejemplo del proyecto, centralizada en `Pago.COMISION_FIJA`.
+El servidor calcula la comision con redondeo HALF_UP a dos decimales y obtiene el
+neto por diferencia para conservar el total. La API ignora los importes derivados
+y el formulario no permite editarlos. La vista muestra una previsualizacion.
+Al actualizar un pago se recalculan estos importes con la tasa fija.
+
+Las relaciones se presentan como ID y nombre o descripcion para distinguir
+personas con el mismo nombre. Los correos se normalizan a minusculas y se
+recortan espacios externos; los nombres conservan tildes y se recortan por fuera.
+
+Ejecutar `sql/revision_integridad.sql` en MySQL para detectar horarios, pagos,
+correos y asociaciones inconsistentes. `sql/restricciones_propuestas.sql` agrega
+CHECK de horario, importes y comision para MySQL 8.0.16 o superior. No se ha
+aplicado automaticamente: primero respaldar y revisar resultados de auditoria.
+Los registros antiguos no se corrigen ni se eliminan de forma automatica.
+
+Quedan por definir las reglas de un pago por contrato frente a pagos parciales,
+una sola contratacion por servicio frente a equipos, perfiles duplicados,
+cruces de disponibilidad, roles permitidos y estados/transiciones. Solo tras
+confirmar esas reglas deben agregarse indices UNIQUE. Tambien quedan por mejorar
+la revision de archivos, la autorizacion y autenticacion, y la auditoria de pagos.
+
+Maven carga Mockito como agente al iniciar las pruebas para evitar el
+autoacoplamiento que puede detener su ejecucion en Java reciente.

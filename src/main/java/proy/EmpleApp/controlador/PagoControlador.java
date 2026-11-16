@@ -82,7 +82,7 @@ public class PagoControlador {
     // Limita los campos que el formulario puede asignar a la entidad y sus relaciones.
     @InitBinder("registro")
     public void configurarCampos(WebDataBinder binder) {
-        binder.setAllowedFields("idPago", "contratacion.idContratacion", "valorServicio", "porcentajeComisionApp", "valorComision", "valorTrabajador", "fechaPago");
+        binder.setAllowedFields("idPago", "contratacion.idContratacion", "valorServicio", "fechaPago");
     }
 
     // Proporciona al modelo las opciones de los selectores de relaciones, cuando existen.

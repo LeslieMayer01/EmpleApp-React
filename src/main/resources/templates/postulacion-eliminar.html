@@ -13,8 +13,8 @@
 <p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
 <!-- GET consulta o carga un registro sin modificar la base de datos. -->
 <form method="get" th:action="@{/postulacion/eliminar}" class="busqueda"><label for="id">ID del registro</label><input id="id" name="id" type="number" min="1" required><button type="submit">Cargar registro</button></form><section th:if="${registro}"><dl><dt>Id Postulacion</dt><dd th:text="${registro.idPostulacion}"></dd>
-<dt>Servicio</dt><dd th:text="${registro.servicio == null ? '—' : registro.servicio.idServicio}"></dd>
-<dt>Trabajador</dt><dd th:text="${registro.trabajador == null ? '—' : registro.trabajador.idTrabajador}"></dd>
+<dt>Servicio</dt><dd th:text="${registro.servicio == null ? '—' : registro.servicio.etiqueta}"></dd>
+<dt>Trabajador</dt><dd th:text="${registro.trabajador == null ? '—' : registro.trabajador.etiqueta}"></dd>
 <dt>Fecha Postulacion</dt><dd th:text="${registro.fechaPostulacion}"></dd></dl><p>Confirma la eliminación de este registro.</p><!-- POST envía el formulario al método correspondiente del controlador. -->
 <form method="post" th:action="@{/postulacion/eliminar}"><input type="hidden" name="id" th:value="${registro.idPostulacion}"><button class="peligro" type="submit">Confirmar eliminación</button><a th:href="@{/postulacion/consultar}">Cancelar</a></form></section>
 </main></body></html>

@@ -34,22 +34,39 @@ public class Servicio {
     @JoinColumn(name = "id_estado", nullable = false)
     private EstadoServicio estado;
 
+    @NotNull(message = "La fecha y ambas horas son obligatorias")
     @Column(name = "fecha")
     private LocalDate fecha;
 
+    @NotNull(message = "La fecha y ambas horas son obligatorias")
     @Column(name = "hora_inicio")
     private LocalTime horaInicio;
 
+    @NotNull(message = "La fecha y ambas horas son obligatorias")
     @Column(name = "hora_fin")
     private LocalTime horaFin;
 
+    @NotBlank(message = "La ubicacion es obligatoria")
     @Size(max = 255)
     @Column(name = "ubicacion", length = 255)
     private String ubicacion;
 
+    @NotNull(message = "El valor ofertado es obligatorio")
+    @Positive(message = "El valor ofertado debe ser mayor que cero")
     @Digits(integer = 8, fraction = 2)
     @Column(name = "valor_ofertado", precision = 10, scale = 2)
     private BigDecimal valorOfertado;
+
+    @AssertTrue(message = "Ingresa ambas horas y verifica que la hora final sea posterior a la inicial del mismo dia")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    public boolean isHorarioValido() {
+        if (horaInicio == null && horaFin == null) return true;
+        return fecha != null && horaInicio != null && horaFin != null && horaFin.isAfter(horaInicio);
+    }
+
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idServicio + " - " + ((tipoServicio == null ? "Servicio" : tipoServicio.getNombreTipo()) + " - " + fecha + " - " + ubicacion); }
 
     public Servicio() { }
 

@@ -12,7 +12,7 @@
 <h1>Detalle · Postulacion</h1>
 <p class="mensaje" role="status" th:if="${mensaje}" th:text="${mensaje}"></p><p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
 <section th:if="${registro}"><dl><dt>Id Postulacion</dt><dd th:text="${registro.idPostulacion}"></dd>
-<dt>Servicio</dt><dd th:text="${registro.servicio == null ? '—' : registro.servicio.idServicio}"></dd>
-<dt>Trabajador</dt><dd th:text="${registro.trabajador == null ? '—' : registro.trabajador.idTrabajador}"></dd>
+<dt>Servicio</dt><dd th:text="${registro.servicio == null ? '—' : registro.servicio.etiqueta}"></dd>
+<dt>Trabajador</dt><dd th:text="${registro.trabajador == null ? '—' : registro.trabajador.etiqueta}"></dd>
 <dt>Fecha Postulacion</dt><dd th:text="${registro.fechaPostulacion}"></dd></dl><div class="acciones"><a th:href="@{/postulacion/actualizar(id=${registro.idPostulacion})}">Actualizar</a><a th:href="@{/postulacion/eliminar(id=${registro.idPostulacion})}">Eliminar</a></div></section>
 </main></body></html>

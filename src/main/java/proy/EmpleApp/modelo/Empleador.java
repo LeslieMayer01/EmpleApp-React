@@ -30,6 +30,10 @@ public class Empleador {
     @Column(name = "telefono", length = 20)
     private String telefono;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idEmpleador + " - " + (usuario == null ? "Sin usuario" : usuario.getNombre()); }
+
     public Empleador() { }
 
     public Integer getIdEmpleador() { return idEmpleador; }

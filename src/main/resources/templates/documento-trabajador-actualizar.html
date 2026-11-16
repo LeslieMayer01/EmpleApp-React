@@ -19,7 +19,7 @@
 <input type="hidden" th:field="*{idDocumento}">
 <div class="campo"><label for="trabajador">Trabajador *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="trabajador" th:field="*{trabajador.idTrabajador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTrabajador}" th:value="${opcion.idTrabajador}" th:text="${opcion.idTrabajador + ' · ' + opcion.idTrabajador}"></option></select>
+<select id="trabajador" th:field="*{trabajador.idTrabajador}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesTrabajador}" th:value="${opcion.idTrabajador}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('trabajador')}" th:errors="*{trabajador}"></small></div>
 <div class="campo"><label for="tipoDocumento">Tipo Documento</label>
 <input id="tipoDocumento" type="text" th:field="*{tipoDocumento}" maxlength="100">

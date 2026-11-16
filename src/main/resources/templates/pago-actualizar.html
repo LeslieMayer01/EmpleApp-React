@@ -19,22 +19,18 @@
 <input type="hidden" th:field="*{idPago}">
 <div class="campo"><label for="contratacion">Contratacion *</label>
 <!-- Las opciones corresponden a registros existentes de la entidad relacionada. -->
-<select id="contratacion" th:field="*{contratacion.idContratacion}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesContratacion}" th:value="${opcion.idContratacion}" th:text="${opcion.idContratacion + ' · ' + opcion.idContratacion}"></option></select>
+<select id="contratacion" th:field="*{contratacion.idContratacion}" required><option value="">Selecciona una opción</option><option th:each="opcion : ${opcionesContratacion}" th:value="${opcion.idContratacion}" th:text="${opcion.etiqueta}"></option></select>
 <small class="error" th:if="${#fields.hasErrors('contratacion')}" th:errors="*{contratacion}"></small></div>
+<p>Comision fija del 10 %. La comision y el valor neto se calculan automaticamente al guardar.</p>
 <div class="campo"><label for="valorServicio">Valor Servicio</label>
-<input id="valorServicio" type="number" th:field="*{valorServicio}" step="0.01">
+<input id="valorServicio" type="number" th:field="*{valorServicio}" step="0.01" min="0.01" max="99999999.99" required>
 <small class="error" th:if="${#fields.hasErrors('valorServicio')}" th:errors="*{valorServicio}"></small></div>
-<div class="campo"><label for="porcentajeComisionApp">Porcentaje Comision App</label>
-<input id="porcentajeComisionApp" type="number" th:field="*{porcentajeComisionApp}" step="0.01">
-<small class="error" th:if="${#fields.hasErrors('porcentajeComisionApp')}" th:errors="*{porcentajeComisionApp}"></small></div>
-<div class="campo"><label for="valorComision">Valor Comision</label>
-<input id="valorComision" type="number" th:field="*{valorComision}" step="0.01">
-<small class="error" th:if="${#fields.hasErrors('valorComision')}" th:errors="*{valorComision}"></small></div>
-<div class="campo"><label for="valorTrabajador">Valor Trabajador</label>
-<input id="valorTrabajador" type="number" th:field="*{valorTrabajador}" step="0.01">
-<small class="error" th:if="${#fields.hasErrors('valorTrabajador')}" th:errors="*{valorTrabajador}"></small></div>
+
+
+
 <div class="campo"><label for="fechaPago">Fecha Pago</label>
 <input id="fechaPago" type="datetime-local" th:field="*{fechaPago}" step="any">
 <small class="error" th:if="${#fields.hasErrors('fechaPago')}" th:errors="*{fechaPago}"></small></div>
+<p aria-live="polite">Comision (10 %): <output id="comisionCalculada">-</output>. Valor neto del trabajador: <output id="netoCalculado">-</output>.</p>
 <div class="acciones"><button type="submit">Guardar cambios</button><a th:href="@{/pago/consultar}">Cancelar</a></div></form>
-</main></body></html>
+</main><script defer th:src="@{/js/validaciones.js}"></script></body></html>

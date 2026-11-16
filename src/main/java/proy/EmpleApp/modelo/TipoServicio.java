@@ -24,6 +24,10 @@ public class TipoServicio {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idTipoServicio + " - " + (nombreTipo); }
+
     public TipoServicio() { }
 
     public Integer getIdTipoServicio() { return idTipoServicio; }

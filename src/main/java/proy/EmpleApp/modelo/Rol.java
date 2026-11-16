@@ -21,6 +21,10 @@ public class Rol {
     @Column(name = "nombre_rol", nullable = false, length = 50)
     private String nombreRol;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getEtiqueta() { return idRol + " - " + (nombreRol); }
+
     public Rol() { }
 
     public Integer getIdRol() { return idRol; }
