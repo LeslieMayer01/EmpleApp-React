@@ -77,3 +77,20 @@ Los controladores no tienen autorización configurada; esta implementación es u
 ```powershell
 ./mvnw.cmd test
 ```
+
+## Cargar registros de ejemplo
+
+Despues de crear las tablas con `DataBase.sql`, abre `DatosEjemplo.sql` en MySQL
+Workbench y ejecuta el script completo sobre tu conexion local. No vuelve a crear
+las tablas ni elimina registros. Inserta datos ficticios respetando las claves
+foraneas dentro de una transaccion; puede repetirse sin duplicar estos ejemplos.
+Si aparece un error, ejecuta `ROLLBACK;` antes de corregirlo y volver a intentar.
+
+En una base recien creada quedan 3 roles, 7 usuarios (un administrador, tres
+empleadores y tres trabajadores), y 3 registros en cada una de las otras tablas.
+Los documentos son fichas de ejemplo sin archivo adjunto. Los tres servicios
+estan finalizados y sus pagos descuentan una comision del 10 %. Los correos usan
+`example.com` y no corresponden a cuentas reales. Los usuarios incluyen un hash
+SHA-256 de demostracion; el proyecto no implementa autenticacion.
+
+La consulta al final del script muestra el total de registros por tabla.
