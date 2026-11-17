@@ -45,6 +45,40 @@ public class UsuarioControlador {
         return ResponseEntity.ok(usuarioAutenticado);
     }
 
+    // Solo se reciben los campos del formulario, nunca el ID ni un hash proporcionado por el cliente.
+    public record SolicitudRegistro(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 100) String nombre,
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Email
+            @jakarta.validation.constraints.Size(max = 100) String correo,
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 72) String contrasena,
+            @jakarta.validation.constraints.NotNull Integer idRol) { }
+
+    @ResponseBody
+    @PostMapping("/api/usuario/registro")
+    // Devuelve 201 cuando se crean la cuenta y su perfil correctamente.
+    @ResponseStatus(HttpStatus.CREATED)
+    public Usuario registrar(@Valid @RequestBody SolicitudRegistro solicitud) {
+        Rol rol = opcionesRol.buscarRol(solicitud.idRol());
+        String nombreRol = rol.getNombreRol().strip().toLowerCase(java.util.Locale.ROOT);
+        // El registro público no permite crear administradores, aunque se altere el formulario.
+        if (!nombreRol.equals("trabajador") && !nombreRol.equals("empleador")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Selecciona el rol Trabajador o Empleador");
+        }
+        // El límite de BCrypt se mide en bytes UTF-8, no solo en cantidad de caracteres.
+        if (solicitud.contrasena().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "La contraseña debe ocupar como máximo 72 bytes");
+        }
+        Usuario usuario = new Usuario();
+        usuario.setNombre(solicitud.nombre());
+        usuario.setCorreo(solicitud.correo());
+        // El formulario envía la contraseña; el servicio genera el hash antes de persistirla.
+        usuario.setContrasenaHash(solicitud.contrasena());
+        usuario.setRol(rol);
+        return servicio.registrar(usuario);
+    }
+
     // Esta ruta de la API devuelve datos JSON en lugar de una plantilla HTML.
     @ResponseBody
     @GetMapping("/api/usuario")

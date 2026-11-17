@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   UserRound,
   LockKeyhole,
@@ -21,6 +21,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { setUsuario } = useSesion();
   const [visible, setVisible] = useState(false);
+  const { state } = useLocation();
 
   const manejarLogin = async (evento) => {
     // Evita recargar la página y enviar otra solicitud mientras se está validando el login.
@@ -93,6 +94,12 @@ export default function Login() {
           <p className="eyebrow">QUÉ BUENO TENERTE AQUÍ</p>
           <h1 id="titulo-login">Iniciar sesión</h1>
           <p className="login-subtitulo">Tu próxima oportunidad te espera.</p>
+          {/* El registro redirige aquí con una confirmación, sin iniciar sesión automáticamente. */}
+          {state?.registroExitoso && (
+            <p className="registro-exito" role="status">
+              Tu cuenta fue creada. Ya puedes iniciar sesión.
+            </p>
+          )}
 
           <form onSubmit={manejarLogin} className="login-formulario" aria-busy={cargando}>
             <div className="login-campo">
@@ -153,7 +160,10 @@ export default function Login() {
               {!cargando && <ArrowUpRight size={17} />}
             </button>
           </form>
-          <p className="login-pendiente">Registro y recuperación de contraseña: próximamente.</p>
+          <p className="registro-enlace">
+            ¿No tienes una cuenta? <Link to="/registro">Regístrate aquí</Link>
+          </p>
+          <p className="login-pendiente">Recuperación de contraseña: próximamente.</p>
           <div className="login-preview">
             <span>¿Quieres conocer EmpleApp?</span>
             <Link to="/admin">

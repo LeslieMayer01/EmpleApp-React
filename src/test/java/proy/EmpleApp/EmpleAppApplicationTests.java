@@ -26,6 +26,56 @@ class EmpleAppApplicationTests {
     @Autowired RolControlador rolControlador;
     @Autowired proy.EmpleApp.controlador.UsuarioControlador usuarioControlador;
     @Autowired proy.EmpleApp.servicio.IUsuarioServicio servicioUsuario;
+    @Autowired proy.EmpleApp.repositorio.ITrabajadorRepositorio trabajadores;
+    @Autowired proy.EmpleApp.repositorio.IEmpleadorRepositorio empleadores;
+
+    @Test
+    @Transactional
+    void registroPublicoCreaCuentaYPerfilSinExponerHash() throws Exception {
+        var mvc = MockMvcBuilders.standaloneSetup(usuarioControlador).build();
+        for (String tipo : java.util.List.of("Trabajador", "Empleador")) {
+            Rol rol = new Rol();
+            rol.setNombreRol(tipo);
+            roles.saveAndFlush(rol);
+            String correo = tipo.toLowerCase() + "-registro@example.com";
+            String solicitud = "{\"nombre\":\"Cuenta de prueba\",\"correo\":\"" + correo
+                + "\",\"contrasena\":\"ClaveRegistro123\",\"idRol\":" + rol.getIdRol() + "}";
+            mvc.perform(post("/api/usuario/registro").contentType(MediaType.APPLICATION_JSON)
+                .content(solicitud))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.correo").value(correo))
+                .andExpect(jsonPath("$.contrasenaHash").doesNotExist());
+            Usuario usuario = servicioUsuario.autenticar(correo, "ClaveRegistro123");
+            assertNotNull(usuario);
+            if (tipo.equals("Trabajador")) {
+                assertTrue(trabajadores.findAll().stream().anyMatch(perfil ->
+                    perfil.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())));
+            } else {
+                assertTrue(empleadores.findAll().stream().anyMatch(perfil ->
+                    perfil.getUsuario().getIdUsuario().equals(usuario.getIdUsuario())));
+            }
+            mvc.perform(post("/api/usuario/registro").contentType(MediaType.APPLICATION_JSON)
+                .content(solicitud)).andExpect(status().isConflict());
+        }
+    }
+
+    @Test
+    @Transactional
+    void registroPublicoRechazaAdministradoresYDatosInvalidos() throws Exception {
+        Rol rol = new Rol();
+        rol.setNombreRol("Administrador Principal");
+        roles.saveAndFlush(rol);
+        var mvc = MockMvcBuilders.standaloneSetup(usuarioControlador).build();
+        long cantidad = usuarios.count();
+        mvc.perform(post("/api/usuario/registro").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"nombre\":\"Prueba\",\"correo\":\"admin-registro@example.com\","
+                + "\"contrasena\":\"ClaveRegistro123\",\"idRol\":" + rol.getIdRol() + "}"))
+            .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/usuario/registro").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"nombre\":\"\",\"correo\":\"incorrecto\",\"contrasena\":\"\"}"))
+            .andExpect(status().isBadRequest());
+        assertEquals(cantidad, usuarios.count());
+    }
 
     @Test
     @Transactional

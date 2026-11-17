@@ -1,4 +1,58 @@
 /* Tarjeta de acceso: marca a la izquierda y formulario a la derecha. */
+.registro-enlace {
+  margin: 22px 0 0;
+  text-align: center;
+  color: #777085;
+  font-size: 11px;
+}
+
+.registro-enlace a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.registro .login-contenido {
+  padding-top: 34px;
+  padding-bottom: 34px;
+}
+
+.registro .login-formulario {
+  gap: 15px;
+}
+
+.registro .login-subtitulo {
+  margin-bottom: 24px;
+}
+
+.login-campo select {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #dedbe6;
+  border-radius: 7px;
+  background: white;
+  color: #484052;
+  font-size: 11px;
+}
+
+.registro-reintentar {
+  display: block;
+  margin-top: 8px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  padding: 5px 10px;
+  background: white;
+  color: inherit;
+}
+
+.registro-exito {
+  padding: 12px;
+  border-radius: 7px;
+  background: #edf8f1;
+  color: #236440;
+  font-size: 11px;
+}
+
 .login-pagina {
   min-height: 100vh;
   display: flex;

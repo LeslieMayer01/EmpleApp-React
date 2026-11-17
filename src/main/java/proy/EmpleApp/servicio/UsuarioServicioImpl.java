@@ -20,6 +20,12 @@ public class UsuarioServicioImpl implements IUsuarioServicio {
     @Autowired
     private jakarta.validation.Validator validador;
 
+    @Autowired
+    private proy.EmpleApp.repositorio.ITrabajadorRepositorio trabajadores;
+
+    @Autowired
+    private proy.EmpleApp.repositorio.IEmpleadorRepositorio empleadores;
+
     @Override
     public List<Usuario> listarUsuario() { return repositorio.findAll(); }
 
@@ -63,6 +69,8 @@ public class UsuarioServicioImpl implements IUsuarioServicio {
     }
 
     @Override
+    // Si falla la creación del perfil, también se revierte la creación del usuario.
+    @org.springframework.transaction.annotation.Transactional
     public Usuario registrar(Usuario usuario) {
         // Registrar solo crea cuentas: un ID recibido no debe actualizar otro usuario.
         if (usuario == null || usuario.getIdUsuario() != null) {
@@ -80,8 +88,29 @@ public class UsuarioServicioImpl implements IUsuarioServicio {
                 "El correo ya está registrado");
         }
 
-        // Reutiliza el guardado para generar el hash BCrypt de la contraseña.
-        return guardarUsuario(usuario);
+        // En un registro la entrada siempre es una contraseña, nunca un hash ya calculado.
+        usuario.setContrasenaHash(contrasenas.encode(usuario.getContrasenaHash()));
+        Usuario registrado;
+        try {
+            registrado = repositorio.saveAndFlush(usuario);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // La restricción UNIQUE también protege dos registros simultáneos con el mismo correo.
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "No se pudo registrar la cuenta. Revisa el correo y el rol", ex);
+        }
+
+        // Cuenta y perfil se guardan en una misma transacción para evitar registros incompletos.
+        String nombreRol = registrado.getRol().getNombreRol().strip().toLowerCase(java.util.Locale.ROOT);
+        if (nombreRol.equals("trabajador")) {
+            var perfil = new proy.EmpleApp.modelo.Trabajador();
+            perfil.setUsuario(registrado);
+            trabajadores.save(perfil);
+        } else if (nombreRol.equals("empleador")) {
+            var perfil = new proy.EmpleApp.modelo.Empleador();
+            perfil.setUsuario(registrado);
+            empleadores.save(perfil);
+        }
+        return registrado;
     }
 
     private boolean esHashBCrypt(String valor) {

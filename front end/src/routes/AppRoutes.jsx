@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Login from '../pages/Login.jsx';
+import RegistrarUsuario from '../pages/RegistrarUsuario.jsx';
 import PanelLayout from '../components/PanelLayout.jsx';
 import Dashboard from '../pages/Dashboard.jsx';
 import Publicaciones from '../pages/Publicaciones.jsx';
@@ -12,6 +13,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/registro" element={<RegistrarUsuario />} />
       <Route element={<PanelLayout />}>
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/publicaciones" element={<Publicaciones />} />
