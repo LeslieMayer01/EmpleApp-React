@@ -3,7 +3,7 @@ package proy.EmpleApp.servicio;
 import java.util.List;
 import proy.EmpleApp.modelo.Usuario;
 
-/** Define las cuatro operaciones que el controlador puede solicitar al servicio. */
+/** Define las operaciones que el controlador puede solicitar al servicio. */
 public interface IUsuarioServicio {
     /** Devuelve todos los registros de la entidad. */
     List<Usuario> listarUsuario();
@@ -13,4 +13,6 @@ public interface IUsuarioServicio {
     Usuario buscarUsuario(Integer id);
     /** Elimina el registro identificado por su clave primaria. */
     void eliminarUsuario(Integer id);
+    /** Comprueba el correo y la contraseña; devuelve null si no son válidos. */
+    Usuario autenticar(String correo, String contrasena);
 }

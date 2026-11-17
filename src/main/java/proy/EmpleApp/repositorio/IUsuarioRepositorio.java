@@ -7,4 +7,5 @@ import proy.EmpleApp.modelo.Usuario;
 /** Spring Data JPA implementa las operaciones de consulta y persistencia de esta interfaz. */
 @Repository
 public interface IUsuarioRepositorio extends JpaRepository<Usuario, Integer> {
+    java.util.Optional<Usuario> findByCorreo(String correo);
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import proy.EmpleApp.modelo.Usuario;
@@ -21,10 +22,28 @@ import proy.EmpleApp.servicio.*;
 
 /** Atiende las vistas Thymeleaf y las operaciones JSON de esta entidad. */
 @Controller
+@CrossOrigin(origins = "http://localhost:5173")
 public class UsuarioControlador {
 
     @Autowired
     private IUsuarioServicio servicio;
+
+    // El login solo requiere correo y contraseña, no los demás campos del registro.
+    public record SolicitudLogin(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Email String correo,
+            @jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Size(max = 72) String contrasena) { }
+
+    @ResponseBody
+    @PostMapping("/api/usuario/login")
+    public ResponseEntity<?> login(@Valid @RequestBody SolicitudLogin solicitud) {
+        Usuario usuarioAutenticado = servicio.autenticar(solicitud.correo(), solicitud.contrasena());
+        if (usuarioAutenticado == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Correo o contraseña incorrectos");
+        }
+        return ResponseEntity.ok(usuarioAutenticado);
+    }
 
     // Esta ruta de la API devuelve datos JSON en lugar de una plantilla HTML.
     @ResponseBody

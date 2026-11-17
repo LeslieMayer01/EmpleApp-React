@@ -24,6 +24,43 @@ class EmpleAppApplicationTests {
     @Autowired EntityManager entityManager;
     @Autowired Validator validator;
     @Autowired RolControlador rolControlador;
+    @Autowired proy.EmpleApp.controlador.UsuarioControlador usuarioControlador;
+    @Autowired proy.EmpleApp.servicio.IUsuarioServicio servicioUsuario;
+
+    @Test
+    @Transactional
+    void loginValidaCredencialesSinExponerContrasena() throws Exception {
+        Rol rol = new Rol();
+        rol.setNombreRol("Login prueba");
+        roles.saveAndFlush(rol);
+        Usuario usuario = new Usuario();
+        usuario.setNombre("Ana Login");
+        usuario.setCorreo("login@example.com");
+        usuario.setContrasenaHash("ClaveSoloDePrueba123");
+        usuario.setRol(rol);
+        servicioUsuario.guardarUsuario(usuario);
+        usuarios.flush();
+        assertNotEquals("ClaveSoloDePrueba123", usuario.getContrasenaHash());
+        String hash = usuario.getContrasenaHash();
+        servicioUsuario.guardarUsuario(usuario);
+        assertEquals(hash, usuario.getContrasenaHash());
+
+        var mvc = MockMvcBuilders.standaloneSetup(usuarioControlador).build();
+        mvc.perform(post("/api/usuario/login").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"correo\":\"LOGIN@example.com\",\"contrasena\":\"ClaveSoloDePrueba123\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.correo").value("login@example.com"))
+            .andExpect(jsonPath("$.contrasenaHash").doesNotExist());
+        mvc.perform(post("/api/usuario/login").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"correo\":\"login@example.com\",\"contrasena\":\"incorrecta\"}"))
+            .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/usuario/login").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"correo\":\"ausente@example.com\",\"contrasena\":\"incorrecta\"}"))
+            .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/usuario/login").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"correo\":\"login@example.com\"}"))
+            .andExpect(status().isBadRequest());
+    }
 
 	@Test
 	void contextLoads() {
