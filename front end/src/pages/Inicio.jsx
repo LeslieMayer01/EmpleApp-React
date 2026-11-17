@@ -7,7 +7,9 @@ export default function Inicio() {
     <section aria-labelledby="titulo-inicio">
       <h1 id="titulo-inicio">Bienvenido a EmpleApp</h1>
       {state?.nombreUsuario && (
-        <p role="status">Hola, {state.nombreUsuario}. Tus credenciales se verificaron correctamente.</p>
+        <p role="status">
+          Hola, {state.nombreUsuario}. Tus credenciales se verificaron correctamente.
+        </p>
       )}
       <p>Conectamos empleadores y trabajadores.</p>
     </section>

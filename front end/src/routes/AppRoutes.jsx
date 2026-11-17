@@ -7,6 +7,7 @@ import Publicaciones from '../pages/Publicaciones.jsx';
 import Perfil from '../pages/Perfil.jsx';
 
 export default function AppRoutes() {
+  // Login tiene su propio diseño; las vistas internas comparten PanelLayout mediante Outlet.
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
