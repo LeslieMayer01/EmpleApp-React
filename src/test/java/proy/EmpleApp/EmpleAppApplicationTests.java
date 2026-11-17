@@ -29,6 +29,52 @@ class EmpleAppApplicationTests {
 
     @Test
     @Transactional
+    void registrarCreaCuentaAutenticableYRechazaCorreoDuplicado() {
+        Rol rol = new Rol();
+        rol.setNombreRol("Trabajador registro");
+        roles.saveAndFlush(rol);
+
+        Usuario nuevo = new Usuario();
+        nuevo.setNombre("Usuario de registro");
+        nuevo.setCorreo("  REGISTRO@example.com  ");
+        nuevo.setContrasenaHash("ClaveRegistro123");
+        nuevo.setRol(rol);
+
+        Usuario registrado = servicioUsuario.registrar(nuevo);
+        usuarios.flush();
+        assertNotNull(registrado.getIdUsuario());
+        assertNotEquals("ClaveRegistro123", registrado.getContrasenaHash());
+        assertEquals(registrado.getIdUsuario(),
+            servicioUsuario.autenticar("registro@example.com", "ClaveRegistro123").getIdUsuario());
+        assertNull(servicioUsuario.autenticar("registro@example.com", "claveIncorrecta"));
+
+        Usuario duplicado = new Usuario();
+        duplicado.setNombre("Otro nombre");
+        duplicado.setCorreo("REGISTRO@example.com");
+        duplicado.setContrasenaHash("OtraClave123");
+        duplicado.setRol(rol);
+        var error = assertThrows(org.springframework.web.server.ResponseStatusException.class,
+            () -> servicioUsuario.registrar(duplicado));
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT, error.getStatusCode());
+        assertEquals("Usuario de registro",
+            usuarios.findByCorreo("registro@example.com").orElseThrow().getNombre());
+    }
+
+    @Test
+    void registrarRechazaDatosInvalidosYUsuariosConId() {
+        var invalido = assertThrows(org.springframework.web.server.ResponseStatusException.class,
+            () -> servicioUsuario.registrar(new Usuario()));
+        assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST, invalido.getStatusCode());
+
+        Usuario conId = new Usuario();
+        conId.setIdUsuario(1);
+        var existente = assertThrows(org.springframework.web.server.ResponseStatusException.class,
+            () -> servicioUsuario.registrar(conId));
+        assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST, existente.getStatusCode());
+    }
+
+    @Test
+    @Transactional
     void loginValidaCredencialesSinExponerContrasena() throws Exception {
         Rol rol = new Rol();
         rol.setNombreRol("Login prueba");

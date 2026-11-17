@@ -15,4 +15,7 @@ public interface IUsuarioServicio {
     void eliminarUsuario(Integer id);
     /** Comprueba el correo y la contraseña; devuelve null si no son válidos. */
     Usuario autenticar(String correo, String contrasena);
+
+    /** Registra una cuenta nueva; rechaza datos inválidos y correos ya registrados. */
+    Usuario registrar(Usuario usuario);
 }

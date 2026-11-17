@@ -17,6 +17,9 @@ public class UsuarioServicioImpl implements IUsuarioServicio {
     @Autowired
     private IUsuarioRepositorio repositorio;
 
+    @Autowired
+    private jakarta.validation.Validator validador;
+
     @Override
     public List<Usuario> listarUsuario() { return repositorio.findAll(); }
 
@@ -57,6 +60,28 @@ public class UsuarioServicioImpl implements IUsuarioServicio {
             return null;
         }
         return contrasenas.matches(contrasena, usuario.getContrasenaHash()) ? usuario : null;
+    }
+
+    @Override
+    public Usuario registrar(Usuario usuario) {
+        // Registrar solo crea cuentas: un ID recibido no debe actualizar otro usuario.
+        if (usuario == null || usuario.getIdUsuario() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "El registro debe corresponder a un usuario nuevo, sin ID");
+        }
+        if (!validador.validate(usuario).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Los datos del usuario no cumplen las validaciones");
+        }
+
+        // El modelo normaliza el correo; no se sobrescribe una cuenta existente.
+        if (repositorio.findByCorreo(usuario.getCorreo()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "El correo ya está registrado");
+        }
+
+        // Reutiliza el guardado para generar el hash BCrypt de la contraseña.
+        return guardarUsuario(usuario);
     }
 
     private boolean esHashBCrypt(String valor) {
