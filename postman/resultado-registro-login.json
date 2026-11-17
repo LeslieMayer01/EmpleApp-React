@@ -1,0 +1,178 @@
+{
+  "coleccion": "EmpleApp - Registro y login",
+  "herramienta": "Newman",
+  "baseDeDatos": "H2 en memoria",
+  "mysqlModificado": false,
+  "peticiones": 14,
+  "comprobaciones": 20,
+  "fallos": 0,
+  "omitidas": [
+    "Rol administrador inexistente en H2"
+  ],
+  "resultados": [
+    {
+      "nombre": "Inicializar ejecución y consultar roles",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Lista JSON",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Crear rol Trabajador solo si no existe",
+      "estadoHTTP": 201,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 201",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Registrar trabajador nuevo",
+      "estadoHTTP": 201,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 201",
+          "aprobada": true
+        },
+        {
+          "nombre": "Contraseña excluida",
+          "aprobada": true
+        },
+        {
+          "nombre": "Correo correcto",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Comprobar perfil creado automáticamente",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Perfil vinculado",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Correo duplicado rechazado",
+      "estadoHTTP": 409,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 409",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Registro incompleto rechazado",
+      "estadoHTTP": 400,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 400",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Rol inexistente rechazado",
+      "estadoHTTP": 404,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 404",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Login correcto",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Usuario esperado",
+          "aprobada": true
+        },
+        {
+          "nombre": "No expone hash",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Contraseña incorrecta",
+      "estadoHTTP": 401,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 401",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Usuario inexistente",
+      "estadoHTTP": 401,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 401",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Login incompleto",
+      "estadoHTTP": 400,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 400",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Eliminar perfil de registro",
+      "estadoHTTP": 204,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 204",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Eliminar cuenta de registro",
+      "estadoHTTP": 204,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 204",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Eliminar rol de registro solo si se creó en esta ejecución",
+      "estadoHTTP": 204,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 204",
+          "aprobada": true
+        }
+      ]
+    }
+  ]
+}

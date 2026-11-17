@@ -1,0 +1,569 @@
+{
+  "info": {
+    "name": "EmpleApp - Registro y login",
+    "description": "Solo registro y autenticación. Ejecutar una iteración en orden. Preparación de roles, casos de registro y login y limpieza de las cuentas de esta corrida. Los roles existentes no se eliminan.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Preparación y roles de registro",
+      "item": [
+        {
+          "name": "Inicializar ejecución y consultar roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rol"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "[\"idRol\",\"idUsuario\",\"idEmpleador\",\"idTrabajador\",\"idTipoServicio\",\"idEstado\",\"idServicio\",\"idDocumento\",\"idPostulacion\",\"idContratacion\",\"idPago\",\"idUsuarioRegistro\",\"idPerfilRegistro\",\"idRolRegistro\",\"idRolAdmin\",\"rolRegistroCreado\"].forEach(k=>pm.collectionVariables.unset(k)); const run=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8); pm.collectionVariables.set('runId',run); pm.collectionVariables.set('correoRegistro','postman-registro-'+run+'@example.test'); pm.collectionVariables.set('correoCrud','postman-crud-'+run+'@example.test'); pm.collectionVariables.set('clavePrueba','PruebaPostman2026!');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const roles=pm.response.json(); pm.test('Lista JSON',()=>pm.expect(roles).to.be.an('array')); const trabajador=roles.find(r=>r.nombreRol.toLowerCase().trim()==='trabajador'); if(trabajador)pm.collectionVariables.set('idRolRegistro',trabajador.idRol); const admin=roles.find(r=>r.nombreRol.toLowerCase().includes('admin')); if(admin)pm.collectionVariables.set('idRolAdmin',admin.idRol);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear rol Trabajador solo si no existe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/rol",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreRol\": \"Trabajador\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if(pm.collectionVariables.get('idRolRegistro'))pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){pm.collectionVariables.set('idRolRegistro',pm.response.json().idRol);pm.collectionVariables.set('rolRegistroCreado','si');}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Registro y autenticación",
+      "item": [
+        {
+          "name": "Registrar trabajador nuevo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Registro Postman {{runId}}\",\n  \"correo\": \"{{correoRegistro}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": {{idRolRegistro}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idRolRegistro\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "if(pm.response.code===201){const u=pm.response.json();pm.collectionVariables.set('idUsuarioRegistro',u.idUsuario);pm.test('Contraseña excluida',()=>pm.expect(u).not.to.have.property('contrasenaHash'));pm.test('Correo correcto',()=>pm.expect(u.correo).to.eql(pm.collectionVariables.get('correoRegistro')));}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Comprobar perfil creado automáticamente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idUsuarioRegistro\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const perfil=pm.response.json().find(p=>p.usuario.idUsuario===Number(pm.collectionVariables.get('idUsuarioRegistro')));pm.test('Perfil vinculado',()=>pm.expect(perfil).to.exist);if(perfil)pm.collectionVariables.set('idPerfilRegistro',perfil.idTrabajador);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Correo duplicado rechazado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Registro Postman {{runId}}\",\n  \"correo\": \"{{correoRegistro}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": {{idRolRegistro}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idUsuarioRegistro\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro incompleto rechazado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"correo\": \"invalido\",\n  \"contrasena\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rol inexistente rechazado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Registro Postman {{runId}}\",\n  \"correo\": \"otro-{{correoRegistro}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No permite registrarse como administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Registro Postman {{runId}}\",\n  \"correo\": \"admin-{{correoRegistro}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": {{idRolAdmin}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idRolAdmin\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login correcto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoRegistro}}\",\n  \"contrasena\": \"{{clavePrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idUsuarioRegistro\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const u=pm.response.json();pm.test('Usuario esperado',()=>pm.expect(u.idUsuario).to.eql(Number(pm.collectionVariables.get('idUsuarioRegistro'))));pm.test('No expone hash',()=>pm.expect(u).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contraseña incorrecta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoRegistro}}\",\n  \"contrasena\": \"Incorrecta123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idUsuarioRegistro\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usuario inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"ausente-{{runId}}@example.test\",\n  \"contrasena\": \"Incorrecta123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login incompleto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoRegistro}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Limpieza de las cuentas de prueba",
+      "item": [
+        {
+          "name": "Eliminar perfil de registro",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador/{{idPerfilRegistro}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idPerfilRegistro\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar cuenta de registro",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/{{idUsuarioRegistro}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([\"idUsuarioRegistro\"].some(k => !pm.collectionVariables.get(k))) { console.warn('OMITIDO: faltan datos previos para esta petición'); pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar rol de registro solo si se creó en esta ejecución",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/rol/{{idRolRegistro}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if(pm.collectionVariables.get('rolRegistroCreado')!=='si')pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
