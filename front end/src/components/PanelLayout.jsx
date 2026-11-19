@@ -14,23 +14,47 @@ import { useSesion } from '../context/SesionContext.jsx';
 
 export default function PanelLayout() {
   // Este contenedor comparte el menú y el pie de página entre las cuatro vistas internas.
-  const { usuario, setUsuario } = useSesion();
+  const { usuario, rol, paginaInicial, cerrarSesion } = useSesion();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [abierto, setAbierto] = useState(false);
+  const [saliendo, setSaliendo] = useState(false);
+  const [errorSalida, setErrorSalida] = useState('');
   const perfil =
     pathname === '/trabajador'
       ? 'Trabajador'
       : pathname === '/empleador'
         ? 'Empleador'
-        : 'Administrador';
-  // La navegación permite recorrer los prototipos; no representa permisos del backend.
+        : pathname === '/admin/publicaciones'
+          ? 'Publicaciones'
+          : 'Administrador';
+  // En vista previa se pueden recorrer los prototipos; con sesión se muestra el menú del rol.
   const enlaces = [
     ['/admin', LayoutDashboard, 'Panel principal'],
     ['/admin/publicaciones', FileText, 'Publicaciones'],
     ['/trabajador', UserRound, 'Perfil del trabajador'],
     ['/empleador', BriefcaseBusiness, 'Perfil del empleador'],
-  ];
+  ].filter(
+    ([ruta]) =>
+      !usuario ||
+      ruta === '/admin/publicaciones' ||
+      (rol === 'administrador' && ruta === '/admin') ||
+      (rol === 'trabajador' && ruta === '/trabajador') ||
+      (rol === 'empleador' && ruta === '/empleador'),
+  );
+
+  const salir = async () => {
+    setErrorSalida('');
+    setSaliendo(true);
+    try {
+      await cerrarSesion();
+      navigate('/login');
+    } catch {
+      setErrorSalida('No se pudo cerrar la sesión. Comprueba la conexión e inténtalo de nuevo.');
+    } finally {
+      setSaliendo(false);
+    }
+  };
   return (
     <div className="panel-app">
       <a href="#contenido" className="saltar">
@@ -46,7 +70,7 @@ export default function PanelLayout() {
         {abierto ? <X /> : <Menu />} EmpleApp
       </button>
       <aside id="menu-lateral" className={`sidebar ${abierto ? 'abierto' : ''}`}>
-        <NavLink to="/admin" className="brand">
+        <NavLink to={usuario ? paginaInicial : '/admin'} className="brand">
           <span className="brand-icon">
             E<span>·</span>
           </span>
@@ -75,15 +99,9 @@ export default function PanelLayout() {
           <strong>El talento nos conecta</strong>
           <p>Más oportunidades, nuevas conexiones.</p>
         </div>
-        <button
-          className="salir"
-          onClick={() => {
-            setUsuario(null);
-            navigate('/login');
-          }}
-        >
+        <button className="salir" onClick={salir} disabled={saliendo}>
           <LogOut size={18} />
-          {usuario ? 'Cerrar sesión' : 'Volver al login'}
+          {saliendo ? 'Cerrando…' : usuario ? 'Cerrar sesión' : 'Volver al login'}
         </button>
       </aside>
       <div className="panel-cuerpo">
@@ -96,6 +114,11 @@ export default function PanelLayout() {
           </span>
         </header>
         <main id="contenido" className="panel-contenido">
+          {errorSalida && (
+            <p className="aviso error" role="alert">
+              {errorSalida}
+            </p>
+          )}
           <Outlet />
         </main>
         <footer className="panel-footer">

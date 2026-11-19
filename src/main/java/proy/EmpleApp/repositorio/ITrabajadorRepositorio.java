@@ -7,4 +7,5 @@ import proy.EmpleApp.modelo.Trabajador;
 /** Spring Data JPA implementa las operaciones de consulta y persistencia de esta interfaz. */
 @Repository
 public interface ITrabajadorRepositorio extends JpaRepository<Trabajador, Integer> {
+    java.util.Optional<Trabajador> findFirstByUsuario_IdUsuarioOrderByIdTrabajadorAsc(Integer idUsuario);
 }

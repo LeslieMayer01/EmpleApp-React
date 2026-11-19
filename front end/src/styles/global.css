@@ -932,3 +932,100 @@ td small {
     scroll-behavior: auto !important;
   }
 }
+
+/* Publicaciones: filtros y acciones propias del empleador. */
+.pestanas-publicaciones {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.pestanas-publicaciones button {
+  border: 1px solid #ddd6f5;
+  background: white;
+  color: #665780;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 12px;
+}
+.pestanas-publicaciones button[aria-pressed='true'] {
+  color: white;
+  background: var(--violeta);
+  border-color: var(--violeta);
+}
+.filtros-publicaciones {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 13px;
+}
+.filtros-publicaciones label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 10px;
+  color: #747389;
+}
+.filtros-publicaciones label.buscar {
+  flex-direction: row;
+  align-items: center;
+  height: 42px;
+  max-width: none;
+}
+.filtros-publicaciones input:not(.buscar input),
+.filtros-publicaciones select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--borde);
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: white;
+  color: inherit;
+  font-size: 11px;
+}
+.acciones-filtro,
+.acciones-tabla {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.formulario-publicacion fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.formulario-publicacion select {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #dcd8e9;
+  border-radius: 7px;
+  background: white;
+  color: inherit;
+}
+.campos-horario {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+@media (max-width: 760px) {
+  .filtros-publicaciones {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filtros-publicaciones .buscar {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 420px) {
+  .filtros-publicaciones {
+    grid-template-columns: 1fr;
+  }
+  .campos-horario {
+    grid-template-columns: 1fr;
+  }
+}

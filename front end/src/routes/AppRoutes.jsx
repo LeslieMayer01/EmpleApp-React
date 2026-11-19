@@ -6,6 +6,7 @@ import PanelLayout from '../components/PanelLayout.jsx';
 import Dashboard from '../pages/Dashboard.jsx';
 import Publicaciones from '../pages/Publicaciones.jsx';
 import Perfil from '../pages/Perfil.jsx';
+import AccesoVista from '../components/AccesoVista.jsx';
 
 export default function AppRoutes() {
   // Login tiene su propio diseño; las vistas internas comparten PanelLayout mediante Outlet.
@@ -15,10 +16,38 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<RegistrarUsuario />} />
       <Route element={<PanelLayout />}>
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/publicaciones" element={<Publicaciones />} />
-        <Route path="/trabajador" element={<Perfil key="trabajador" tipo="trabajador" />} />
-        <Route path="/empleador" element={<Perfil key="empleador" tipo="empleador" />} />
+        <Route
+          path="/admin"
+          element={
+            <AccesoVista roles={['administrador']}>
+              <Dashboard />
+            </AccesoVista>
+          }
+        />
+        <Route
+          path="/admin/publicaciones"
+          element={
+            <AccesoVista roles={['administrador', 'trabajador', 'empleador']}>
+              <Publicaciones />
+            </AccesoVista>
+          }
+        />
+        <Route
+          path="/trabajador"
+          element={
+            <AccesoVista roles={['trabajador']}>
+              <Perfil key="trabajador" tipo="trabajador" />
+            </AccesoVista>
+          }
+        />
+        <Route
+          path="/empleador"
+          element={
+            <AccesoVista roles={['empleador']}>
+              <Perfil key="empleador" tipo="empleador" />
+            </AccesoVista>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

@@ -40,3 +40,12 @@ export async function registrarUsuario(datos) {
   const respuesta = await api.post(`${ruta}/registro`, datos);
   return respuesta.data;
 }
+
+export async function obtenerCuentaActual() {
+  const respuesta = await api.get(`${ruta}/me`);
+  return respuesta.data;
+}
+
+export async function cerrarSesion() {
+  await api.post(`${ruta}/logout`);
+}

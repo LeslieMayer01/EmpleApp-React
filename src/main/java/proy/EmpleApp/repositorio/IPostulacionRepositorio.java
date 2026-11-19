@@ -7,4 +7,5 @@ import proy.EmpleApp.modelo.Postulacion;
 /** Spring Data JPA implementa las operaciones de consulta y persistencia de esta interfaz. */
 @Repository
 public interface IPostulacionRepositorio extends JpaRepository<Postulacion, Integer> {
+    boolean existsByServicio_IdServicio(Integer idServicio);
 }

@@ -22,11 +22,31 @@ import proy.EmpleApp.servicio.*;
 
 /** Atiende las vistas Thymeleaf y las operaciones JSON de esta entidad. */
 @Controller
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class UsuarioControlador {
 
     @Autowired
     private IUsuarioServicio servicio;
+
+    @Autowired
+    private proy.EmpleApp.seguridad.UsuarioActual usuarioActual;
+    @Autowired
+    private org.springframework.security.web.context.HttpSessionSecurityContextRepository contextos;
+    @Autowired
+    private org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository tokensCsrf;
+
+    // React y Postman solicitan este token antes de enviar POST, PUT, PATCH o DELETE.
+    @ResponseBody
+    @GetMapping("/api/usuario/csrf")
+    public java.util.Map<String, String> csrf(org.springframework.security.web.csrf.CsrfToken token) {
+        return java.util.Map.of("token", token.getToken(), "headerName", token.getHeaderName());
+    }
+
+    @ResponseBody
+    @GetMapping("/api/usuario/me")
+    public Usuario cuentaActual(org.springframework.security.core.Authentication autenticacion) {
+        return usuarioActual.obtener(autenticacion);
+    }
 
     // El login solo requiere correo y contraseña, no los demás campos del registro.
     public record SolicitudLogin(
@@ -36,12 +56,25 @@ public class UsuarioControlador {
 
     @ResponseBody
     @PostMapping("/api/usuario/login")
-    public ResponseEntity<?> login(@Valid @RequestBody SolicitudLogin solicitud) {
+    public ResponseEntity<?> login(@Valid @RequestBody SolicitudLogin solicitud,
+            jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response) {
         Usuario usuarioAutenticado = servicio.autenticar(solicitud.correo(), solicitud.contrasena());
         if (usuarioAutenticado == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body("Correo o contraseña incorrectos");
         }
+        // Cambia el ID al autenticar para evitar reutilizar un identificador de sesión previo.
+        request.getSession();
+        request.changeSessionId();
+        var autenticacion = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+            usuarioAutenticado.getIdUsuario().toString(), null, java.util.List.of());
+        var contexto = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+        contexto.setAuthentication(autenticacion);
+        org.springframework.security.core.context.SecurityContextHolder.setContext(contexto);
+        contextos.saveContext(contexto, request, response);
+        // El siguiente envío debe obtener un token CSRF nuevo después del login.
+        tokensCsrf.saveToken(null, request, response);
         return ResponseEntity.ok(usuarioAutenticado);
     }
 

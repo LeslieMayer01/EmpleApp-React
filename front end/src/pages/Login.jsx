@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
   UserRound,
   LockKeyhole,
@@ -19,7 +19,7 @@ export default function Login() {
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
-  const { setUsuario } = useSesion();
+  const { usuario: cuentaActual, paginaInicial, setUsuario, activarVistaPrevia } = useSesion();
   const [visible, setVisible] = useState(false);
   const { state } = useLocation();
 
@@ -32,13 +32,19 @@ export default function Login() {
 
     try {
       const usuario = await iniciarSesion(correo.trim(), contrasena);
-      // No guardamos la contraseña. El backend todavía no emite un token de sesión.
+      // La sesión queda en una cookie HTTP-only que administra el navegador.
       setContrasena('');
       setUsuario(usuario);
       // El nombre del rol decide la página inicial; no sustituye la autorización del servidor.
-      const rol = (usuario.rol?.nombreRol || '').toLowerCase();
+      const rol = (usuario.rol?.nombreRol || '').trim().toLowerCase();
       navigate(
-        rol.includes('admin') ? '/admin' : rol.includes('empleador') ? '/empleador' : '/trabajador',
+        rol === 'administrador' || rol.startsWith('administrador ')
+          ? '/admin'
+          : rol === 'empleador'
+            ? '/empleador'
+            : rol === 'trabajador'
+              ? '/trabajador'
+              : '/login',
         { replace: true },
       );
     } catch (error) {
@@ -57,6 +63,7 @@ export default function Login() {
     }
   };
 
+  if (cuentaActual && paginaInicial !== '/login') return <Navigate to={paginaInicial} replace />;
   return (
     <main className="login-pagina">
       <section className="login" aria-labelledby="titulo-login">
@@ -94,6 +101,12 @@ export default function Login() {
           <p className="eyebrow">QUÉ BUENO TENERTE AQUÍ</p>
           <h1 id="titulo-login">Iniciar sesión</h1>
           <p className="login-subtitulo">Tu próxima oportunidad te espera.</p>
+          {cuentaActual && paginaInicial === '/login' && (
+            <p className="login-error" role="alert">
+              Tu cuenta no tiene un rol habilitado. Contacta al administrador o ingresa con otra
+              cuenta.
+            </p>
+          )}
           {/* El registro redirige aquí con una confirmación, sin iniciar sesión automáticamente. */}
           {state?.registroExitoso && (
             <p className="registro-exito" role="status">
@@ -166,7 +179,7 @@ export default function Login() {
           <p className="login-pendiente">Recuperación de contraseña: próximamente.</p>
           <div className="login-preview">
             <span>¿Quieres conocer EmpleApp?</span>
-            <Link to="/admin">
+            <Link to="/admin" onClick={activarVistaPrevia}>
               Explorar las vistas <ArrowUpRight size={14} />
             </Link>
           </div>

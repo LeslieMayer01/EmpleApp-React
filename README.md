@@ -2,6 +2,10 @@
 
 Aplicación Spring Boot con 11 entidades correspondientes a DataBase.sql.
 
+El registro y login incluyen BCrypt, sesiones del servidor, CSRF y permisos por rol.
+Consulta [sesiones y permisos](docs/SEGURIDAD.md) para las rutas `/me`, el cierre de sesión
+y el nuevo flujo de pruebas en Postman. El CRUD general requiere administrador.
+
 ## Ejecutar con MySQL
 
 1. Inicia MySQL e importa `DataBase.sql` para crear la base `empleapp`, las tablas y los datos iniciales.
@@ -66,11 +70,11 @@ Crear un usuario con POST a `http://localhost:8080/api/usuario`:
 ```
 
 Las relaciones se envían como objetos con el ID de un registro existente.
-`contrasenaHash` contiene un hash generado previamente; esta base CRUD no implementa
-registro, autenticación ni generación de hashes. El hash no se devuelve en JSON.
+El registro público recibe `contrasena` y calcula su hash BCrypt. La ruta CRUD de
+usuarios es administrativa y conserva su campo `contrasenaHash`. El hash no se devuelve en JSON.
 Las fechas de carga, postulación, contratación y pago se asignan al crear si se omiten.
 Los archivos binarios se representan en JSON como Base64.
-Los controladores no tienen autorización configurada; esta implementación es una base de desarrollo.
+Las rutas protegidas requieren una sesión y aplican los permisos descritos en `docs/SEGURIDAD.md`.
 
 ## Pruebas
 
@@ -91,7 +95,7 @@ empleadores y tres trabajadores), y 3 registros en cada una de las otras tablas.
 Los documentos son fichas de ejemplo sin archivo adjunto. Los tres servicios
 estan finalizados y sus pagos descuentan una comision del 10 %. Los correos usan
 `example.com` y no corresponden a cuentas reales. Los usuarios incluyen un hash
-SHA-256 de demostracion; el proyecto no implementa autenticacion.
+SHA-256 de demostracion; esos hashes antiguos no son compatibles con el login BCrypt actual.
 
 La consulta al final del script muestra el total de registros por tabla.
 
@@ -122,7 +126,8 @@ Quedan por definir las reglas de un pago por contrato frente a pagos parciales,
 una sola contratacion por servicio frente a equipos, perfiles duplicados,
 cruces de disponibilidad, roles permitidos y estados/transiciones. Solo tras
 confirmar esas reglas deben agregarse indices UNIQUE. Tambien quedan por mejorar
-la revision de archivos, la autorizacion y autenticacion, y la auditoria de pagos.
+la revision de archivos y la auditoria de pagos. La primera etapa de sesiones y
+permisos ya esta implementada y se documenta en `docs/SEGURIDAD.md`.
 
 Maven carga Mockito como agente al iniciar las pruebas para evitar el
 autoacoplamiento que puede detener su ejecucion en Java reciente.

@@ -1,39 +1,46 @@
-# Entrega de pruebas de registro y login
+# Pruebas de registro, login y sesión
 
-Esta es la colección que corresponde al alcance del profesor. La colección general de la carpeta es opcional y no se necesita para esta entrega.
+La colección `RegistroLogin.postman_collection.json` está actualizada para sesiones de Spring Security y protección CSRF. Importa también `Local.postman_environment.json`, selecciona **EmpleApp local** y ejecuta todas las carpetas en orden con una iteración. El backend debe estar encendido en 8080; el frontend no es necesario para Postman.
 
-## Archivos que debes importar
+## Qué cambió
 
-- `RegistroLogin.postman_collection.json`
-- `Local.postman_environment.json`
+- Antes de cada POST o PUT, el script de colección consulta `/api/usuario/csrf` y añade la cabecera que recibe. No desactives la cookie jar de Postman.
+- El login conserva una sesión mediante cookie; `/api/usuario/me` obtiene la cuenta autenticada.
+- `/api/trabajador/me` permite consultar y editar el perfil propio. Los listados generales requieren administrador.
+- `/api/usuario/logout` termina la sesión. Una consulta de `/me` posterior debe devolver 401.
+- La petición marcada `[Sin CSRF]` omite el token deliberadamente y debe devolver 403.
 
-## Pasos en Postman
+## Casos
 
-1. Enciende MySQL y el backend. Espera `Started EmpleAppApplication`.
-2. Pulsa **Import** en Postman y selecciona los dos archivos anteriores.
-3. Selecciona el entorno **EmpleApp local**; `baseUrl` debe ser `http://localhost:8080/api`.
-4. Abre **EmpleApp - Registro y login** y pulsa **Run**.
-5. Ejecuta todas sus carpetas en orden, con una iteración. La preparación y la limpieza son necesarias para que los casos sean repetibles.
-
-## Casos de la entrega
-
-| Caso | Resultado esperado |
+| Caso | HTTP esperado |
 | --- | --- |
-| Registro con datos válidos | 201 y usuario sin contraseña en la respuesta |
-| Perfil vinculado automáticamente | 200 y perfil asociado a la cuenta nueva |
+| Consultar roles para el registro | 200 |
+| Registro de trabajador | 201 |
 | Correo duplicado | 409 |
-| Registro incompleto | 400 |
+| Datos de registro incompletos | 400 |
 | Rol inexistente | 404 |
-| Intento de registro como administrador | 400; se omite si ese rol no existe |
-| Login correcto | 200 y usuario esperado sin contraseña en la respuesta |
-| Contraseña incorrecta | 401 |
-| Correo inexistente | 401 |
+| Intento de registro como administrador | 400, si ese rol existe |
+| Login correcto | 200 |
+| Contraseña incorrecta o correo inexistente | 401 |
 | Login incompleto | 400 |
+| Consultar cuenta actual y perfil propio | 200 |
+| Actualizar perfil propio | 200 |
+| Listar o crear cuentas sin ser administrador | 403 |
+| Perfil de empleador con cuenta trabajador | 403 |
+| Cerrar sesión | 204 |
+| Consultar cuenta después de logout | 401 |
+| Registro sin token CSRF | 403 |
 
-La colección consulta los roles reales, genera un correo único para cada corrida y borra únicamente su cuenta y perfil de prueba al finalizar. Conserva los roles que existían antes de empezar. Si se interrumpe la corrida, termina la carpeta de limpieza con las mismas variables antes de repetirla.
+Los roles deben existir previamente en la base, como al importar `DataBase.sql`. La colección no crea roles porque esa operación es administrativa. La prueba de rol administrador se omite si no existe; una omisión no es un caso aprobado.
 
-## Evidencia
+## Datos de prueba
 
-Guarda capturas del resumen del Runner y de las respuestas 201, 200, 401 y 409, mostrando también las comprobaciones de Postman. No incluyas contraseñas reales.
+Cada corrida genera un correo único con dominio `example.test`. No utiliza la cuenta demo de administrador ni credenciales de MySQL. Esta versión no borra automáticamente la cuenta ni su perfil: su eliminación requiere una sesión administrativa. Si ejecutas la colección sobre MySQL, conservarás una cuenta y un perfil de prueba por corrida. Ejecuta sobre una copia de pruebas cuando corresponda.
 
-La colección específica se verificó con Newman en una base H2 temporal, sin modificar MySQL: **14 peticiones enviadas, 20 comprobaciones y ningún fallo**. La petición de rol administrador se omitió porque esa base temporal no tenía uno. Consulta `resultado-registro-login.json` para ver los resultados por petición. Ejecutarla en Postman sobre MySQL es la comprobación pendiente para tu entrega.
+## Resultado verificado
+
+La colección se ejecutó con Newman contra H2 en memoria en el puerto 8081: **19 peticiones principales, 31 peticiones HTTP contando la obtención de CSRF, 39 comprobaciones y ningún fallo**. En esa base existían los tres roles, por lo que no se omitió el caso de administrador. Los resultados están en `resultado-registro-login.json`. No se modificó MySQL.
+
+Las 37 pruebas Java incluyen además comprobaciones con la cadena real de seguridad, edición del perfil de empleador, rechazo de cambios de propietario, permisos administrativos y CORS de logout. El navegador también verificó ingreso, persistencia tras recargar, edición propia y cierre de sesión.
+
+Para pruebas manuales y la matriz de permisos consulta [Sesiones y permisos](../docs/SEGURIDAD.md). Para la entrega guarda capturas de registro 201, login 200, credenciales incorrectas 401 y duplicado 409. Los resultados anteriores a esta etapa corresponden a la API sin protección de sesión y no deben confundirse con esta corrida.

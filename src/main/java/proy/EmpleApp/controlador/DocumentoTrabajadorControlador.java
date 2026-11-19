@@ -21,7 +21,7 @@ import proy.EmpleApp.servicio.*;
 
 /** Atiende las vistas Thymeleaf y las operaciones JSON de esta entidad. */
 @Controller
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class DocumentoTrabajadorControlador {
 
     @Autowired

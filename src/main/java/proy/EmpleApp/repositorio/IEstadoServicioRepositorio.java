@@ -7,4 +7,5 @@ import proy.EmpleApp.modelo.EstadoServicio;
 /** Spring Data JPA implementa las operaciones de consulta y persistencia de esta interfaz. */
 @Repository
 public interface IEstadoServicioRepositorio extends JpaRepository<EstadoServicio, Integer> {
+    java.util.Optional<EstadoServicio> findFirstByNombreEstadoIgnoreCaseOrderByIdEstadoAsc(String nombre);
 }

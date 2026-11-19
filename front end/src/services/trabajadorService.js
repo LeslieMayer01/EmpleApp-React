@@ -27,3 +27,14 @@ export async function eliminarTrabajador(id) {
   // El backend responde 204: la eliminación no devuelve un objeto.
   await api.delete(`${ruta}/${encodeURIComponent(id)}`);
 }
+
+// La sesión identifica al propietario; no se envía un ID de usuario.
+export async function obtenerMiPerfilTrabajador() {
+  const respuesta = await api.get('/trabajador/me');
+  return respuesta.data;
+}
+
+export async function actualizarMiPerfilTrabajador(datos) {
+  const respuesta = await api.put('/trabajador/me', datos);
+  return respuesta.data;
+}

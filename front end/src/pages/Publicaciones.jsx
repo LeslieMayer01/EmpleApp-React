@@ -1,90 +1,327 @@
-import React, { useState } from 'react';
-import { Search, Eye, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  Search,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Plus,
+  Pencil,
+  XCircle,
+} from 'lucide-react';
 import { useSesion } from '../context/SesionContext.jsx';
 import useDatos from '../hooks/useDatos.js';
 import { publicacionesEjemplo } from '../data/ejemplos.js';
-import { listarServicios } from '../services/servicioService.js';
+import {
+  buscarPublicaciones,
+  publicarServicio,
+  actualizarPublicacion,
+  cancelarPublicacion,
+} from '../services/servicioService.js';
+import { listarTiposServicio } from '../services/tipoServicioService.js';
+import { listarEstadosServicio } from '../services/estadoServicioService.js';
 import EstadoVacio from '../components/EstadoVacio.jsx';
 import Modal from '../components/Modal.jsx';
+import FormularioPublicacion from '../components/FormularioPublicacion.jsx';
 
+const TAMANO_PAGINA = 8;
+const PAGINA_EJEMPLO = {
+  contenido: publicacionesEjemplo,
+  pagina: 0,
+  tamano: TAMANO_PAGINA,
+  totalElementos: publicacionesEjemplo.length,
+  totalPaginas: publicacionesEjemplo.length ? 1 : 0,
+};
+const FILTROS_INICIALES = {
+  busqueda: '',
+  tipoId: '',
+  estadoId: '',
+  ubicacion: '',
+  fechaDesde: '',
+  fechaHasta: '',
+};
 const moneda = (valor) =>
   new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(valor || 0);
-const PUBLICACIONES_POR_PAGINA = 8;
+
 export default function Publicaciones() {
-  const { usuario } = useSesion();
-  const { datos, cargando, error, recargar } = useDatos(
-    listarServicios,
-    publicacionesEjemplo,
-    !usuario,
+  const { usuario, rol } = useSesion();
+  const [parametros] = useSearchParams();
+  const empleador = rol === 'empleador';
+  const [soloMias, setSoloMias] = useState(empleador && parametros.get('mis') === '1');
+  const [campos, setCampos] = useState(FILTROS_INICIALES);
+  const [filtros, setFiltros] = useState({});
+  const [pagina, setPagina] = useState(0);
+  const [tipos, setTipos] = useState([]);
+  const [estados, setEstados] = useState([]);
+  const [errorCatalogos, setErrorCatalogos] = useState('');
+  const [cargandoCatalogos, setCargandoCatalogos] = useState(false);
+  const [intentoCatalogos, setIntentoCatalogos] = useState(0);
+  const [errorFiltro, setErrorFiltro] = useState('');
+  const [mensaje, setMensaje] = useState('');
+  const [detalle, setDetalle] = useState(null);
+  const [formulario, setFormulario] = useState(empleador && parametros.get('crear') === '1');
+  const [edicion, setEdicion] = useState(null);
+  const [cancelacion, setCancelacion] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+  const [errorCancelar, setErrorCancelar] = useState('');
+
+  const cargar = useCallback(
+    () => buscarPublicaciones({ ...filtros, pagina, tamano: TAMANO_PAGINA }, soloMias),
+    [filtros, pagina, soloMias],
   );
-  const [busqueda, setBusqueda] = useState('');
-  const [estado, setEstado] = useState('');
-  const [pagina, setPagina] = useState(1);
-  const [seleccionado, setSeleccionado] = useState(null);
-  const filas = (datos || []).filter(
-    (fila) =>
-      `${fila.tipoServicio?.nombreTipo || ''} ${fila.ubicacion || ''} ${fila.empleador?.usuario?.nombre || ''}`
-        .toLowerCase()
-        .includes(busqueda.toLowerCase()) &&
-      (!estado || fila.estado?.nombreEstado === estado),
-  );
-  const estados = [
-    ...new Set((datos || []).map((fila) => fila.estado?.nombreEstado).filter(Boolean)),
-  ];
-  // Primero filtramos los registros y después seleccionamos la página visible.
-  const paginas = Math.max(1, Math.ceil(filas.length / PUBLICACIONES_POR_PAGINA));
-  const actual = Math.min(pagina, paginas);
-  const visibles = filas.slice(
-    (actual - 1) * PUBLICACIONES_POR_PAGINA,
-    actual * PUBLICACIONES_POR_PAGINA,
-  );
+  const { datos, cargando, error, recargar } = useDatos(cargar, PAGINA_EJEMPLO, !usuario);
+  const filas = datos?.contenido || [];
+  const total = datos?.totalElementos || 0;
+  const paginas = datos?.totalPaginas || 0;
+
+  // Los catálogos son independientes de la búsqueda; no se reconstruyen desde una sola página.
+  useEffect(() => {
+    if (!usuario) return;
+    let activo = true;
+    setCargandoCatalogos(true);
+    setErrorCatalogos('');
+    Promise.all([listarTiposServicio(), listarEstadosServicio()])
+      .then(([tiposRecibidos, estadosRecibidos]) => {
+        if (activo) {
+          setTipos(tiposRecibidos);
+          setEstados(estadosRecibidos);
+        }
+      })
+      .catch(() => {
+        if (activo) setErrorCatalogos('No se pudieron cargar los tipos y estados de servicio.');
+      })
+      .finally(() => {
+        if (activo) setCargandoCatalogos(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, [usuario?.idUsuario, intentoCatalogos]);
+
+  useEffect(() => {
+    if (!cargando && datos && pagina > 0 && pagina >= datos.totalPaginas)
+      setPagina(Math.max(0, datos.totalPaginas - 1));
+  }, [datos, pagina, cargando]);
+
+  const filtrar = (evento) => {
+    evento.preventDefault();
+    setErrorFiltro('');
+    if (campos.fechaDesde && campos.fechaHasta && campos.fechaDesde > campos.fechaHasta) {
+      setErrorFiltro('La fecha inicial no puede ser posterior a la final.');
+      return;
+    }
+    const valores = Object.fromEntries(
+      Object.entries(campos)
+        .filter(([, valor]) => valor !== '')
+        .map(([clave, valor]) => [
+          clave,
+          ['tipoId', 'estadoId'].includes(clave) ? Number(valor) : valor.trim(),
+        ]),
+    );
+    setFiltros(valores);
+    setPagina(0);
+  };
+  const cambiarFiltro = (evento) =>
+    setCampos((actual) => ({ ...actual, [evento.target.name]: evento.target.value }));
+  const cambiarVista = (propias) => {
+    setSoloMias(propias);
+    setPagina(0);
+    setMensaje('');
+  };
+  const abrirFormulario = (publicacion) => {
+    setEdicion(publicacion);
+    setFormulario(true);
+    setMensaje('');
+  };
+  const guardar = async (datosFormulario) => {
+    setEnviando(true);
+    try {
+      if (edicion) await actualizarPublicacion(edicion.idServicio, datosFormulario);
+      else await publicarServicio(datosFormulario);
+      setMensaje(
+        edicion
+          ? 'Publicación actualizada correctamente.'
+          : 'Tu servicio fue publicado correctamente.',
+      );
+      setFormulario(false);
+      setEdicion(null);
+      setSoloMias(true);
+      setPagina(0);
+      recargar();
+      setIntentoCatalogos((actual) => actual + 1);
+    } finally {
+      setEnviando(false);
+    }
+  };
+  const confirmarCancelacion = async () => {
+    setEnviando(true);
+    setErrorCancelar('');
+    try {
+      await cancelarPublicacion(cancelacion.idServicio);
+      setCancelacion(null);
+      setMensaje('La publicación fue cancelada. Se conserva su información.');
+      recargar();
+      setIntentoCatalogos((actual) => actual + 1);
+    } catch (fallo) {
+      setErrorCancelar(
+        fallo.response?.status === 409
+          ? 'La oferta cambió de estado o tiene postulaciones o contrataciones vinculadas.'
+          : 'No se pudo cancelar. Comprueba tus permisos y la conexión.',
+      );
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   return (
     <>
       <div className="titulo-pagina">
         <div>
           <p className="eyebrow">OPORTUNIDADES QUE CONECTAN</p>
-          <h1>Gestión de publicaciones</h1>
-          <p>Consulta los servicios publicados en la plataforma.</p>
+          <h1>{soloMias ? 'Mis publicaciones' : 'Publicaciones de servicios'}</h1>
+          <p>
+            {soloMias
+              ? 'Administra las ofertas publicadas a tu nombre.'
+              : 'Encuentra servicios por tipo, ubicación y fecha.'}
+          </p>
         </div>
-        <span className="icono-color violeta">
-          <FileText size={26} />
-        </span>
+        {empleador ? (
+          <button className="boton" onClick={() => abrirFormulario(null)}>
+            <Plus size={17} />
+            Nueva publicación
+          </button>
+        ) : (
+          <span className="icono-color violeta">
+            <FileText size={26} />
+          </span>
+        )}
       </div>
+      {empleador && (
+        <div className="pestanas-publicaciones" role="group" aria-label="Alcance de publicaciones">
+          <button aria-pressed={!soloMias} onClick={() => cambiarVista(false)}>
+            Todas las publicaciones
+          </button>
+          <button aria-pressed={soloMias} onClick={() => cambiarVista(true)}>
+            Mis publicaciones
+          </button>
+        </div>
+      )}
+      {mensaje && (
+        <p className="aviso" role="status">
+          {mensaje}
+        </p>
+      )}
+      {errorCatalogos && (
+        <div className="aviso error" role="alert">
+          {errorCatalogos}
+          <button onClick={() => setIntentoCatalogos((actual) => actual + 1)}>Reintentar</button>
+        </div>
+      )}
       <section className="tarjeta tabla-tarjeta">
-        <div className="filtros">
+        <form className="filtros filtros-publicaciones" onSubmit={filtrar}>
           <label className="buscar">
             <Search size={18} />
             <input
+              name="busqueda"
               aria-label="Buscar publicaciones"
-              placeholder="Buscar servicio, empleador o ubicación…"
-              value={busqueda}
-              onChange={(e) => {
-                setBusqueda(e.target.value);
-                setPagina(1);
-              }}
+              maxLength={100}
+              placeholder="Servicio, empleador o ubicación…"
+              value={campos.busqueda}
+              onChange={cambiarFiltro}
             />
           </label>
-          <select
-            aria-label="Filtrar por estado"
-            value={estado}
-            onChange={(e) => {
-              setEstado(e.target.value);
-              setPagina(1);
-            }}
-          >
-            <option value="">Todos los estados</option>
-            {estados.map((nombre) => (
-              <option key={nombre}>{nombre}</option>
-            ))}
-          </select>
-        </div>
+          <label>
+            Tipo
+            <select
+              aria-label="Filtrar por tipo"
+              name="tipoId"
+              value={campos.tipoId}
+              onChange={cambiarFiltro}
+            >
+              <option value="">Todos los tipos</option>
+              {tipos.map((tipo) => (
+                <option key={tipo.idTipoServicio} value={tipo.idTipoServicio}>
+                  {tipo.nombreTipo}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Estado
+            <select
+              aria-label="Filtrar por estado"
+              name="estadoId"
+              value={campos.estadoId}
+              onChange={cambiarFiltro}
+            >
+              <option value="">Todos los estados</option>
+              {estados.map((estado) => (
+                <option key={estado.idEstado} value={estado.idEstado}>
+                  {estado.nombreEstado}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Ubicación
+            <input
+              name="ubicacion"
+              maxLength={255}
+              placeholder="Ciudad o sector"
+              value={campos.ubicacion}
+              onChange={cambiarFiltro}
+            />
+          </label>
+          <label>
+            Desde
+            <input
+              type="date"
+              name="fechaDesde"
+              value={campos.fechaDesde}
+              onChange={cambiarFiltro}
+            />
+          </label>
+          <label>
+            Hasta
+            <input
+              type="date"
+              name="fechaHasta"
+              value={campos.fechaHasta}
+              onChange={cambiarFiltro}
+            />
+          </label>
+          <div className="acciones-filtro">
+            <button className="boton compacto" type="submit" disabled={cargando || !usuario}>
+              Buscar
+            </button>
+            <button
+              className="boton secundario compacto"
+              type="button"
+              onClick={() => {
+                setCampos(FILTROS_INICIALES);
+                setFiltros({});
+                setPagina(0);
+                setErrorFiltro('');
+              }}
+            >
+              Limpiar
+            </button>
+          </div>
+        </form>
+        {errorFiltro && (
+          <p role="alert" className="error-texto">
+            {errorFiltro}
+          </p>
+        )}
         {error && (
           <div role="alert" className="aviso error">
-            {error} <button onClick={recargar}>Reintentar</button>
+            {error}
+            <button onClick={recargar}>Reintentar</button>
           </div>
         )}
         <div className="tabla-scroll">
@@ -102,27 +339,50 @@ export default function Publicaciones() {
               </tr>
             </thead>
             <tbody>
-              {visibles.map((fila) => (
+              {filas.map((fila) => (
                 <tr key={fila.idServicio}>
                   <td>#{fila.idServicio}</td>
                   <td>
-                    <strong>{fila.tipoServicio?.nombreTipo}</strong>
+                    <strong>{fila.tipoServicio.nombreTipo}</strong>
                     <small>{fila.fecha}</small>
                   </td>
-                  <td>{fila.empleador?.usuario?.nombre}</td>
+                  <td>{fila.empleador.usuario.nombre}</td>
                   <td>{fila.ubicacion}</td>
                   <td>{moneda(fila.valorOfertado)}</td>
                   <td>
-                    <span className="badge">{fila.estado?.nombreEstado || 'Sin estado'}</span>
+                    <span className="badge">{fila.estado.nombreEstado}</span>
                   </td>
                   <td>
-                    <button
-                      className="boton-icono"
-                      aria-label={`Ver publicación ${fila.idServicio}`}
-                      onClick={() => setSeleccionado(fila)}
-                    >
-                      <Eye size={18} />
-                    </button>
+                    <div className="acciones-tabla">
+                      <button
+                        className="boton-icono"
+                        aria-label={`Ver publicación ${fila.idServicio}`}
+                        onClick={() => setDetalle(fila)}
+                      >
+                        <Eye size={17} />
+                      </button>
+                      {soloMias && fila.estado.nombreEstado.toLowerCase() === 'publicado' && (
+                        <>
+                          <button
+                            className="boton-icono"
+                            aria-label={`Editar publicación ${fila.idServicio}`}
+                            onClick={() => abrirFormulario(fila)}
+                          >
+                            <Pencil size={17} />
+                          </button>
+                          <button
+                            className="boton-icono"
+                            aria-label={`Cancelar publicación ${fila.idServicio}`}
+                            onClick={() => {
+                              setCancelacion(fila);
+                              setErrorCancelar('');
+                            }}
+                          >
+                            <XCircle size={17} />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -135,42 +395,40 @@ export default function Publicaciones() {
           </p>
         ) : (
           !error &&
-          filas.length === 0 && (
+          !filas.length && (
             <EstadoVacio
-              titulo={
-                busqueda || estado ? 'No encontramos coincidencias' : 'Aún no hay publicaciones'
-              }
+              titulo="No hay publicaciones para mostrar"
               texto={
-                busqueda || estado
-                  ? 'Prueba con otra búsqueda o cambia el estado.'
-                  : 'Los servicios publicados aparecerán aquí.'
+                soloMias
+                  ? 'Publica tu primer servicio o cambia los filtros de búsqueda.'
+                  : 'Prueba con otros filtros o vuelve cuando haya nuevas ofertas.'
               }
             />
           )
         )}
         <div className="paginacion">
           <span>
-            {filas.length
-              ? `${(actual - 1) * PUBLICACIONES_POR_PAGINA + 1}–${Math.min(actual * PUBLICACIONES_POR_PAGINA, filas.length)}`
+            {total
+              ? `${pagina * TAMANO_PAGINA + 1}–${Math.min((pagina + 1) * TAMANO_PAGINA, total)}`
               : '0'}{' '}
-            de {filas.length} publicaciones
+            de {total} publicaciones
           </span>
           <div>
             <button
               className="boton secundario compacto"
-              disabled={actual <= 1}
-              onClick={() => setPagina(actual - 1)}
+              disabled={!pagina || cargando}
+              onClick={() => setPagina((actual) => actual - 1)}
             >
               <ChevronLeft size={16} />
               Anterior
             </button>
             <span className="numero-pagina" aria-current="page">
-              {actual}
+              {pagina + 1}
             </span>
             <button
               className="boton secundario compacto"
-              disabled={actual >= paginas}
-              onClick={() => setPagina(actual + 1)}
+              disabled={pagina + 1 >= paginas || cargando}
+              onClick={() => setPagina((actual) => actual + 1)}
             >
               Siguiente
               <ChevronRight size={16} />
@@ -178,43 +436,96 @@ export default function Publicaciones() {
           </div>
         </div>
       </section>
-      <p className="nota-pagina">
-        Esta primera vista permite consultar publicaciones. El formulario para crear ofertas se
-        incorporará en un siguiente paso.
-      </p>
-      {seleccionado && (
-        <Modal
-          titulo={`Publicación #${seleccionado.idServicio}`}
-          onCerrar={() => setSeleccionado(null)}
-        >
+      {!usuario && (
+        <p className="nota-pagina">
+          Estás en vista previa. Inicia sesión para consultar y publicar servicios reales.
+        </p>
+      )}
+      {detalle && (
+        <Modal titulo={`Publicación #${detalle.idServicio}`} onCerrar={() => setDetalle(null)}>
           <dl className="datos-lista">
             <div>
               <dt>Servicio</dt>
-              <dd>{seleccionado.tipoServicio?.nombreTipo}</dd>
+              <dd>{detalle.tipoServicio.nombreTipo}</dd>
+            </div>
+            <div>
+              <dt>Empleador</dt>
+              <dd>{detalle.empleador.usuario.nombre}</dd>
             </div>
             <div>
               <dt>Ubicación</dt>
-              <dd>{seleccionado.ubicacion}</dd>
+              <dd>{detalle.ubicacion}</dd>
             </div>
             <div>
               <dt>Fecha</dt>
-              <dd>{seleccionado.fecha}</dd>
+              <dd>{detalle.fecha}</dd>
             </div>
             <div>
               <dt>Horario</dt>
               <dd>
-                {seleccionado.horaInicio} – {seleccionado.horaFin}
+                {detalle.horaInicio} – {detalle.horaFin}
               </dd>
             </div>
             <div>
               <dt>Valor ofertado</dt>
-              <dd>{moneda(seleccionado.valorOfertado)}</dd>
+              <dd>{moneda(detalle.valorOfertado)}</dd>
             </div>
             <div>
               <dt>Estado</dt>
-              <dd>{seleccionado.estado?.nombreEstado}</dd>
+              <dd>{detalle.estado.nombreEstado}</dd>
             </div>
           </dl>
+        </Modal>
+      )}
+      {formulario && (
+        <Modal
+          titulo={edicion ? 'Editar publicación' : 'Publicar un servicio'}
+          onCerrar={() => {
+            if (!enviando) setFormulario(false);
+          }}
+        >
+          {cargandoCatalogos ? (
+            <p role="status">Cargando tipos de servicio…</p>
+          ) : errorCatalogos ? (
+            <p role="alert">{errorCatalogos}</p>
+          ) : !tipos.length ? (
+            <p>
+              No hay tipos de servicio registrados. Solicita al administrador que configure el
+              catálogo.
+            </p>
+          ) : (
+            <FormularioPublicacion publicacion={edicion} tipos={tipos} onGuardar={guardar} />
+          )}
+        </Modal>
+      )}
+      {cancelacion && (
+        <Modal
+          titulo="Cancelar publicación"
+          onCerrar={() => {
+            if (!enviando) setCancelacion(null);
+          }}
+        >
+          <p>
+            ¿Quieres cancelar la publicación #{cancelacion.idServicio}? Se conservará su
+            información, pero no podrás volver a editarla desde esta pantalla.
+          </p>
+          {errorCancelar && (
+            <p role="alert" className="error-texto">
+              {errorCancelar}
+            </p>
+          )}
+          <div className="acciones-tabla">
+            <button
+              className="boton secundario"
+              disabled={enviando}
+              onClick={() => setCancelacion(null)}
+            >
+              Conservar publicación
+            </button>
+            <button className="boton" disabled={enviando} onClick={confirmarCancelacion}>
+              {enviando ? 'Cancelando…' : 'Confirmar cancelación'}
+            </button>
+          </div>
         </Modal>
       )}
     </>

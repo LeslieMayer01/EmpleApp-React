@@ -21,7 +21,7 @@ import proy.EmpleApp.servicio.*;
 
 /** Atiende las vistas Thymeleaf y las operaciones JSON de esta entidad. */
 @Controller
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class ServicioControlador {
 
     @Autowired
@@ -30,17 +30,17 @@ public class ServicioControlador {
     // Esta ruta de la API devuelve datos JSON en lugar de una plantilla HTML.
     @ResponseBody
     @GetMapping("/api/servicio")
-    public List<Servicio> listar(Model modelo) {
+    public List<proy.EmpleApp.dto.ServicioResumen> listar(Model modelo) {
         List<Servicio> registros = servicio.listarServicio();
         modelo.addAttribute("registros", registros);
-        return registros;
+        return registros.stream().map(proy.EmpleApp.dto.ServicioResumen::de).toList();
     }
 
     // Esta ruta de la API devuelve datos JSON en lugar de una plantilla HTML.
     @ResponseBody
     @GetMapping("/api/servicio/{id}")
-    public Servicio buscar(@PathVariable Integer id) {
-        return servicio.buscarServicio(id);
+    public proy.EmpleApp.dto.ServicioResumen buscar(@PathVariable Integer id) {
+        return proy.EmpleApp.dto.ServicioResumen.de(servicio.buscarServicio(id));
     }
 
     // Esta ruta de la API devuelve datos JSON en lugar de una plantilla HTML.

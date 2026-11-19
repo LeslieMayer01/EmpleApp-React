@@ -1,14 +1,13 @@
 {
-  "coleccion": "EmpleApp - Registro y login",
+  "coleccion": "EmpleApp - Registro y login con sesiones y CSRF",
   "herramienta": "Newman",
   "baseDeDatos": "H2 en memoria",
   "mysqlModificado": false,
-  "peticiones": 14,
-  "comprobaciones": 20,
+  "peticionesPrincipales": 19,
+  "peticionesHTTP": 31,
+  "comprobaciones": 39,
   "fallos": 0,
-  "omitidas": [
-    "Rol administrador inexistente en H2"
-  ],
+  "omitidas": [],
   "resultados": [
     {
       "nombre": "Inicializar ejecución y consultar roles",
@@ -25,19 +24,13 @@
       ]
     },
     {
-      "nombre": "Crear rol Trabajador solo si no existe",
-      "estadoHTTP": 201,
-      "comprobaciones": [
-        {
-          "nombre": "HTTP 201",
-          "aprobada": true
-        }
-      ]
-    },
-    {
       "nombre": "Registrar trabajador nuevo",
       "estadoHTTP": 201,
       "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
         {
           "nombre": "HTTP 201",
           "aprobada": true
@@ -53,15 +46,23 @@
       ]
     },
     {
-      "nombre": "Comprobar perfil creado automáticamente",
-      "estadoHTTP": 200,
+      "nombre": "Registrar trabajador nuevo",
+      "estadoHTTP": 201,
       "comprobaciones": [
         {
-          "nombre": "HTTP 200",
+          "nombre": "Obtener token CSRF",
           "aprobada": true
         },
         {
-          "nombre": "Perfil vinculado",
+          "nombre": "HTTP 201",
+          "aprobada": true
+        },
+        {
+          "nombre": "Contraseña excluida",
+          "aprobada": true
+        },
+        {
+          "nombre": "Correo correcto",
           "aprobada": true
         }
       ]
@@ -70,6 +71,24 @@
       "nombre": "Correo duplicado rechazado",
       "estadoHTTP": 409,
       "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 409",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Correo duplicado rechazado",
+      "estadoHTTP": 409,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
         {
           "nombre": "HTTP 409",
           "aprobada": true
@@ -81,6 +100,24 @@
       "estadoHTTP": 400,
       "comprobaciones": [
         {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 400",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Registro incompleto rechazado",
+      "estadoHTTP": 400,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
           "nombre": "HTTP 400",
           "aprobada": true
         }
@@ -91,7 +128,53 @@
       "estadoHTTP": 404,
       "comprobaciones": [
         {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
           "nombre": "HTTP 404",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Rol inexistente rechazado",
+      "estadoHTTP": 404,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 404",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "No permite registrarse como administrador",
+      "estadoHTTP": 400,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 400",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "No permite registrarse como administrador",
+      "estadoHTTP": 400,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 400",
           "aprobada": true
         }
       ]
@@ -100,6 +183,32 @@
       "nombre": "Login correcto",
       "estadoHTTP": 200,
       "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Usuario esperado",
+          "aprobada": true
+        },
+        {
+          "nombre": "No expone hash",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Login correcto",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
         {
           "nombre": "HTTP 200",
           "aprobada": true
@@ -119,6 +228,24 @@
       "estadoHTTP": 401,
       "comprobaciones": [
         {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 401",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Contraseña incorrecta",
+      "estadoHTTP": 401,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
           "nombre": "HTTP 401",
           "aprobada": true
         }
@@ -128,6 +255,24 @@
       "nombre": "Usuario inexistente",
       "estadoHTTP": 401,
       "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 401",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Usuario inexistente",
+      "estadoHTTP": 401,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
         {
           "nombre": "HTTP 401",
           "aprobada": true
@@ -139,15 +284,149 @@
       "estadoHTTP": 400,
       "comprobaciones": [
         {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
           "nombre": "HTTP 400",
           "aprobada": true
         }
       ]
     },
     {
-      "nombre": "Eliminar perfil de registro",
+      "nombre": "Login incompleto",
+      "estadoHTTP": 400,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 400",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Consultar cuenta de la sesión",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Identidad de la sesión",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Consultar únicamente mi perfil",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Perfil propio",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Actualizar únicamente mi perfil",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Campo actualizado",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Actualizar únicamente mi perfil",
+      "estadoHTTP": 200,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 200",
+          "aprobada": true
+        },
+        {
+          "nombre": "Campo actualizado",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Usuario normal no puede listar todas las cuentas",
+      "estadoHTTP": 403,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 403",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Usuario normal no puede usar el CRUD de cuentas",
+      "estadoHTTP": 403,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 403",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Usuario normal no puede usar el CRUD de cuentas",
+      "estadoHTTP": 403,
+      "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
+        {
+          "nombre": "HTTP 403",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Trabajador no tiene perfil de empleador",
+      "estadoHTTP": 403,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 403",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "Cerrar sesión del servidor",
       "estadoHTTP": 204,
       "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
         {
           "nombre": "HTTP 204",
           "aprobada": true
@@ -155,9 +434,13 @@
       ]
     },
     {
-      "nombre": "Eliminar cuenta de registro",
+      "nombre": "Cerrar sesión del servidor",
       "estadoHTTP": 204,
       "comprobaciones": [
+        {
+          "nombre": "Obtener token CSRF",
+          "aprobada": true
+        },
         {
           "nombre": "HTTP 204",
           "aprobada": true
@@ -165,11 +448,21 @@
       ]
     },
     {
-      "nombre": "Eliminar rol de registro solo si se creó en esta ejecución",
-      "estadoHTTP": 204,
+      "nombre": "Cuenta actual después de logout",
+      "estadoHTTP": 401,
       "comprobaciones": [
         {
-          "nombre": "HTTP 204",
+          "nombre": "HTTP 401",
+          "aprobada": true
+        }
+      ]
+    },
+    {
+      "nombre": "[Sin CSRF] Registro rechazado",
+      "estadoHTTP": 403,
+      "comprobaciones": [
+        {
+          "nombre": "HTTP 403",
           "aprobada": true
         }
       ]

@@ -12,20 +12,20 @@ import { useSesion } from '../context/SesionContext.jsx';
 import useDatos from '../hooks/useDatos.js';
 import { resumenEjemplo } from '../data/ejemplos.js';
 import { listarUsuarios } from '../services/usuarioService.js';
-import { listarServicios } from '../services/servicioService.js';
+import { buscarPublicaciones } from '../services/servicioService.js';
 import { listarPagos } from '../services/pagoService.js';
 async function cargarResumen() {
   // Las tres consultas son independientes y se ejecutan al mismo tiempo.
   const [usuarios, servicios, pagos] = await Promise.all([
     listarUsuarios(),
-    listarServicios(),
+    buscarPublicaciones({ tamano: 1 }),
     listarPagos(),
   ]);
   // El modelo actual representa las publicaciones mediante los servicios ofertados.
   return {
     usuarios: usuarios.length,
-    publicaciones: servicios.length,
-    servicios: servicios.length,
+    publicaciones: servicios.totalElementos,
+    servicios: servicios.totalElementos,
     pagos: pagos.length,
   };
 }

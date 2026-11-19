@@ -7,4 +7,5 @@ import proy.EmpleApp.modelo.Contratacion;
 /** Spring Data JPA implementa las operaciones de consulta y persistencia de esta interfaz. */
 @Repository
 public interface IContratacionRepositorio extends JpaRepository<Contratacion, Integer> {
+    boolean existsByServicio_IdServicio(Integer idServicio);
 }

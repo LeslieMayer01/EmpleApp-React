@@ -14,8 +14,14 @@ import {
 import { useSesion } from '../context/SesionContext.jsx';
 import useDatos from '../hooks/useDatos.js';
 import { perfilesEjemplo } from '../data/ejemplos.js';
-import { listarTrabajadores, actualizarTrabajador } from '../services/trabajadorService.js';
-import { listarEmpleadores, actualizarEmpleador } from '../services/empleadorService.js';
+import {
+  obtenerMiPerfilTrabajador,
+  actualizarMiPerfilTrabajador,
+} from '../services/trabajadorService.js';
+import {
+  obtenerMiPerfilEmpleador,
+  actualizarMiPerfilEmpleador,
+} from '../services/empleadorService.js';
 import Modal from '../components/Modal.jsx';
 import EstadoVacio from '../components/EstadoVacio.jsx';
 
@@ -24,9 +30,13 @@ export default function Perfil({ tipo }) {
   const { usuario } = useSesion();
   const trabajador = tipo === 'trabajador';
   const cargar = useCallback(async () => {
-    // Buscamos el perfil asociado al usuario actual, no el primer registro de la lista.
-    const registros = await (trabajador ? listarTrabajadores() : listarEmpleadores());
-    return registros.find((registro) => registro.usuario?.idUsuario === usuario?.idUsuario) || null;
+    // La propiedad se determina en el servidor; React no descarga otros perfiles.
+    try {
+      return await (trabajador ? obtenerMiPerfilTrabajador() : obtenerMiPerfilEmpleador());
+    } catch (error) {
+      if (error.response?.status === 404) return null;
+      throw error;
+    }
   }, [trabajador, usuario?.idUsuario]);
   const { datos, cargando, error, recargar } = useDatos(cargar, perfilesEjemplo[tipo], !usuario);
   const [edicion, setEdicion] = useState(null);
@@ -42,9 +52,8 @@ export default function Perfil({ tipo }) {
     try {
       if (usuario) {
         // Una cuenta real guarda en la API y vuelve a consultar la información persistida.
-        const id = trabajador ? perfil.idTrabajador : perfil.idEmpleador;
-        const actualizar = trabajador ? actualizarTrabajador : actualizarEmpleador;
-        await actualizar(id, { ...perfil, ...edicion });
+        const actualizar = trabajador ? actualizarMiPerfilTrabajador : actualizarMiPerfilEmpleador;
+        await actualizar(edicion);
         recargar();
       } else {
         // Los cambios de vista previa solo viven en memoria y nunca modifican MySQL.
@@ -175,7 +184,9 @@ export default function Perfil({ tipo }) {
               <div>
                 <h2>Publicar una oferta</h2>
                 <p>Una nueva oportunidad para conectar con talento.</p>
-                <span className="mini-etiqueta">Formulario próximamente</span>
+                <Link className="boton compacto" to="/admin/publicaciones?mis=1&crear=1">
+                  Publicar ahora <ArrowUpRight size={15} />
+                </Link>
               </div>
             </article>
           )}
