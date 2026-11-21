@@ -1,0 +1,4194 @@
+{
+  "info": {
+    "name": "EmpleApp - API completa con sesiones",
+    "description": "69 endpoints. Ejecutar completa, una iteración. Requiere administrador de EmpleApp (no la clave MySQL) en adminCorreo/adminContrasena. Crea registros QA y limpia solo los IDs de esta corrida. GET conserva cookie jar. Todos los cambios requieren CSRF. No usar cuentas ni IDs reales como datos de prueba.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Preparación y registro de cuentas QA",
+      "item": [
+        {
+          "name": "A01 Consultar roles y preparar variables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rol"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "[\"idRolQA\",\"idUsuarioQA\",\"idEmpleadorQA\",\"idTrabajadorQA\",\"idDocumentoQA\",\"idTipoServicioQA\",\"idEstadoQA\",\"idServicioQA\",\"idPostulacionQA\",\"idContratacionQA\",\"idPagoQA\",\"idCuentaEmpleador\",\"idCuentaOtroEmpleador\",\"idCuentaTrabajador\",\"idPerfilEmpleador\",\"idPerfilOtro\",\"idPerfilTrabajador\",\"idPublicacionQA\",\"idRolTrabajador\",\"idRolEmpleador\",\"idRolAdministrador\"].forEach(k=>pm.collectionVariables.unset(k));const run=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);pm.collectionVariables.set('runId',run);pm.collectionVariables.set('clavePrueba','PruebaPostman2026!');[['correoEmpleador','empleador'],['correoOtroEmpleador','otro'],['correoTrabajador','trabajador']].forEach(([k,v])=>pm.collectionVariables.set(k,'qa-'+v+'-'+run+'@example.test'));const fecha=new Date();fecha.setDate(fecha.getDate()+14);pm.collectionVariables.set('fechaPrueba',fecha.toISOString().slice(0,10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "const roles=pm.response.json();for(const [nombre,key]of [['trabajador','idRolTrabajador'],['empleador','idRolEmpleador']]){const rol=roles.find(r=>r.nombreRol.trim().toLowerCase()===nombre);pm.test('Rol '+nombre,()=>pm.expect(rol).to.exist);if(rol)pm.collectionVariables.set(key,rol.idRol);}const admin=roles.find(r=>r.nombreRol.trim().toLowerCase().startsWith('administrador'));if(admin)pm.collectionVariables.set('idRolAdministrador',admin.idRol);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A56 Obtener CSRF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/csrf"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Token y cabecera',()=>{pm.expect(pm.response.json().token).to.be.a('string');pm.expect(pm.response.json().headerName).to.eql('X-CSRF-TOKEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A57 Registrar correoEmpleador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA correoEmpleador\",\n  \"correo\": \"{{correoEmpleador}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": {{idRolEmpleador}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolEmpleador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idCuentaEmpleador',pm.response.json().idUsuario);pm.test('No expone contraseña',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A57 Registrar correoOtroEmpleador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA correoOtroEmpleador\",\n  \"correo\": \"{{correoOtroEmpleador}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": {{idRolEmpleador}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolEmpleador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idCuentaOtroEmpleador',pm.response.json().idUsuario);pm.test('No expone contraseña',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A57 Registrar correoTrabajador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA correoTrabajador\",\n  \"correo\": \"{{correoTrabajador}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": {{idRolTrabajador}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolTrabajador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idCuentaTrabajador',pm.response.json().idUsuario);pm.test('No expone contraseña',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA duplicado\",\n  \"correo\": \"{{correoEmpleador}}\",\n  \"contrasena\": \"{{clavePrueba}}\",\n  \"idRol\": {{idRolEmpleador}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idCuentaEmpleador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Sesión del administrador",
+      "item": [
+        {
+          "name": "A58 Login administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"contrasena\": \"{{adminContrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"adminCorreo\",\"adminContrasena\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Usuario sin hash',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A59 Consultar cuenta actual",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Cuenta administrativa',()=>pm.expect(pm.response.json().rol.nombreRol.toLowerCase()).to.match(/^administrador/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Roles",
+      "item": [
+        {
+          "name": "A01 Listar Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rol"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A03 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/rol",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreRol\": \"QA-{{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idRolQA',pm.response.json().idRol);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A02 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rol/{{idRolQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idRol).to.eql(Number(pm.collectionVariables.get('idRolQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A04 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/rol/{{idRolQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreRol\": \"QA-editado-{{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().nombreRol).to.eql(pm.variables.replaceIn(\"QA-editado-{{runId}}\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rol/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Roles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/rol",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Usuarios",
+      "item": [
+        {
+          "name": "A06 Listar Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A08 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario QA\",\n  \"correo\": \"crud-{{runId}}@example.test\",\n  \"contrasenaHash\": \"{{clavePrueba}}\",\n  \"rol\": {\n    \"idRol\": {{idRolQA}}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idUsuarioQA',pm.response.json().idUsuario);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A07 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/{{idUsuarioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idUsuarioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idUsuario).to.eql(Number(pm.collectionVariables.get('idUsuarioQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A09 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/{{idUsuarioQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario QA actualizado\",\n  \"correo\": \"crud-{{runId}}@example.test\",\n  \"contrasenaHash\": \"{{clavePrueba}}\",\n  \"rol\": {\n    \"idRol\": {{idRolQA}}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idUsuarioQA\",\"idRolQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().nombre).to.eql(pm.variables.replaceIn(\"Usuario QA actualizado\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Usuarios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Empleadores",
+      "item": [
+        {
+          "name": "A11 Listar Empleadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/empleador"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A13 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/empleador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": {\n    \"idUsuario\": {{idUsuarioQA}}\n  },\n  \"direccion\": \"Dirección QA\",\n  \"telefono\": \"3000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idUsuarioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idEmpleadorQA',pm.response.json().idEmpleador);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A12 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/{{idEmpleadorQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEmpleadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idEmpleador).to.eql(Number(pm.collectionVariables.get('idEmpleadorQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A14 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/empleador/{{idEmpleadorQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": {\n    \"idUsuario\": {{idUsuarioQA}}\n  },\n  \"direccion\": \"Dirección QA actualizada\",\n  \"telefono\": \"3000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEmpleadorQA\",\"idUsuarioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().direccion).to.eql(pm.variables.replaceIn(\"Dirección QA actualizada\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Empleadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Empleadores",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/empleador",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Trabajadores",
+      "item": [
+        {
+          "name": "A16 Listar Trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A18 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trabajador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": {\n    \"idUsuario\": {{idUsuarioQA}}\n  },\n  \"experiencia\": \"Experiencia QA\",\n  \"disponibilidad\": \"Mañanas\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idUsuarioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idTrabajadorQA',pm.response.json().idTrabajador);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A17 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador/{{idTrabajadorQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idTrabajador).to.eql(Number(pm.collectionVariables.get('idTrabajadorQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A19 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trabajador/{{idTrabajadorQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": {\n    \"idUsuario\": {{idUsuarioQA}}\n  },\n  \"experiencia\": \"Experiencia QA actualizada\",\n  \"disponibilidad\": \"Mañanas\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTrabajadorQA\",\"idUsuarioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().experiencia).to.eql(pm.variables.replaceIn(\"Experiencia QA actualizada\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Trabajadores",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trabajador",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Tipos de servicio",
+      "item": [
+        {
+          "name": "A26 Listar Tipos de servicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tiposervicio"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A28 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/tiposervicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreTipo\": \"QA-{{runId}}\",\n  \"descripcion\": \"Tipo de servicio QA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idTipoServicioQA',pm.response.json().idTipoServicio);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A27 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tiposervicio/{{idTipoServicioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTipoServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idTipoServicio).to.eql(Number(pm.collectionVariables.get('idTipoServicioQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A29 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/tiposervicio/{{idTipoServicioQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreTipo\": \"QA-{{runId}}\",\n  \"descripcion\": \"Descripción QA actualizada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTipoServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().descripcion).to.eql(pm.variables.replaceIn(\"Descripción QA actualizada\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Tipos de servicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tiposervicio/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Tipos de servicio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/tiposervicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Estados de servicio",
+      "item": [
+        {
+          "name": "A31 Listar Estados de servicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estadoservicio"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A33 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/estadoservicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreEstado\": \"QA-{{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idEstadoQA',pm.response.json().idEstado);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A32 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estadoservicio/{{idEstadoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEstadoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idEstado).to.eql(Number(pm.collectionVariables.get('idEstadoQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A34 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/estadoservicio/{{idEstadoQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreEstado\": \"QA-editado-{{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEstadoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().nombreEstado).to.eql(pm.variables.replaceIn(\"QA-editado-{{runId}}\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Estados de servicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estadoservicio/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Estados de servicio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/estadoservicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Servicios",
+      "item": [
+        {
+          "name": "A36 Listar Servicios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/servicio"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A38 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empleador\": {\n    \"idEmpleador\": {{idEmpleadorQA}}\n  },\n  \"tipoServicio\": {\n    \"idTipoServicio\": {{idTipoServicioQA}}\n  },\n  \"estado\": {\n    \"idEstado\": {{idEstadoQA}}\n  },\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"horaInicio\": \"08:00:00\",\n  \"horaFin\": \"12:00:00\",\n  \"ubicacion\": \"Ubicación QA\",\n  \"valorOfertado\": 100000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEmpleadorQA\",\"idTipoServicioQA\",\"idEstadoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idServicioQA',pm.response.json().idServicio);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A37 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/{{idServicioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idServicio).to.eql(Number(pm.collectionVariables.get('idServicioQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A39 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio/{{idServicioQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empleador\": {\n    \"idEmpleador\": {{idEmpleadorQA}}\n  },\n  \"tipoServicio\": {\n    \"idTipoServicio\": {{idTipoServicioQA}}\n  },\n  \"estado\": {\n    \"idEstado\": {{idEstadoQA}}\n  },\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"horaInicio\": \"08:00:00\",\n  \"horaFin\": \"12:00:00\",\n  \"ubicacion\": \"Ubicación QA actualizada\",\n  \"valorOfertado\": 100000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idServicioQA\",\"idEmpleadorQA\",\"idTipoServicioQA\",\"idEstadoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().ubicacion).to.eql(pm.variables.replaceIn(\"Ubicación QA actualizada\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Servicios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Servicios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Documentos de trabajadores",
+      "item": [
+        {
+          "name": "A21 Listar Documentos de trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/documentotrabajador"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A23 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/documentotrabajador",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trabajador\": {\n    \"idTrabajador\": {{idTrabajadorQA}}\n  },\n  \"tipoDocumento\": \"Certificado QA\",\n  \"archivoBlob\": \"UHJ1ZWJh\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idDocumentoQA',pm.response.json().idDocumento);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A22 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/documentotrabajador/{{idDocumentoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idDocumentoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idDocumento).to.eql(Number(pm.collectionVariables.get('idDocumentoQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A24 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/documentotrabajador/{{idDocumentoQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trabajador\": {\n    \"idTrabajador\": {{idTrabajadorQA}}\n  },\n  \"tipoDocumento\": \"Certificado QA actualizado\",\n  \"archivoBlob\": \"UHJ1ZWJh\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idDocumentoQA\",\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().tipoDocumento).to.eql(pm.variables.replaceIn(\"Certificado QA actualizado\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Documentos de trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/documentotrabajador/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Documentos de trabajadores",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/documentotrabajador",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Postulaciones",
+      "item": [
+        {
+          "name": "A41 Listar Postulaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/postulacion"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A43 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/postulacion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicio\": {\n    \"idServicio\": {{idServicioQA}}\n  },\n  \"trabajador\": {\n    \"idTrabajador\": {{idTrabajadorQA}}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idServicioQA\",\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idPostulacionQA',pm.response.json().idPostulacion);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A42 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/postulacion/{{idPostulacionQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPostulacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idPostulacion).to.eql(Number(pm.collectionVariables.get('idPostulacionQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A44 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/postulacion/{{idPostulacionQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicio\": {\n    \"idServicio\": {{idServicioQA}}\n  },\n  \"trabajador\": {\n    \"idTrabajador\": {{idTrabajadorQA}}\n  },\n  \"fechaPostulacion\": \"2027-01-10T10:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPostulacionQA\",\"idServicioQA\",\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().fechaPostulacion).to.eql(pm.variables.replaceIn(\"2027-01-10T10:00:00\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Postulaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/postulacion/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Postulaciones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/postulacion",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Contrataciones",
+      "item": [
+        {
+          "name": "A46 Listar Contrataciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/contratacion"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A48 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/contratacion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicio\": {\n    \"idServicio\": {{idServicioQA}}\n  },\n  \"trabajador\": {\n    \"idTrabajador\": {{idTrabajadorQA}}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idServicioQA\",\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idContratacionQA',pm.response.json().idContratacion);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A47 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/contratacion/{{idContratacionQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idContratacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idContratacion).to.eql(Number(pm.collectionVariables.get('idContratacionQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A49 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/contratacion/{{idContratacionQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicio\": {\n    \"idServicio\": {{idServicioQA}}\n  },\n  \"trabajador\": {\n    \"idTrabajador\": {{idTrabajadorQA}}\n  },\n  \"fechaContratacion\": \"2027-01-11T10:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idContratacionQA\",\"idServicioQA\",\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().fechaContratacion).to.eql(pm.variables.replaceIn(\"2027-01-11T10:00:00\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Contrataciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/contratacion/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Contrataciones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/contratacion",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CRUD - Pagos",
+      "item": [
+        {
+          "name": "A51 Listar Pagos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pago"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Lista JSON',()=>pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A53 Crear QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pago",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contratacion\": {\n    \"idContratacion\": {{idContratacionQA}}\n  },\n  \"valorServicio\": 100000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idContratacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idPagoQA',pm.response.json().idPago);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A52 Consultar QA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pago/{{idPagoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPagoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID esperado',()=>pm.expect(pm.response.json().idPago).to.eql(Number(pm.collectionVariables.get('idPagoQA'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A54 Actualizar QA",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pago/{{idPagoQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contratacion\": {\n    \"idContratacion\": {{idContratacionQA}}\n  },\n  \"valorServicio\": 200000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPagoQA\",\"idContratacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Campo actualizado',()=>pm.expect(pm.response.json().valorServicio).to.eql(200000));pm.test('Comisión fija 10%',()=>{const p=pm.response.json();pm.expect(p.valorComision).to.eql(20000);pm.expect(p.valorTrabajador).to.eql(180000);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET inexistente Pagos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pago/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Datos inválidos Pagos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pago",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Perfil y publicaciones del empleador",
+      "item": [
+        {
+          "name": "A58 Login empleador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoEmpleador}}\",\n  \"contrasena\": \"{{clavePrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"correoEmpleador\",\"clavePrueba\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Usuario sin hash',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A63 Consultar mi perfil empleador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('idPerfilEmpleador',pm.response.json().idEmpleador);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A64 Editar mi perfil empleador",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/empleador/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direccion\": \"Dirección propia QA\",\n  \"telefono\": \"3000000001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Teléfono actualizado',()=>pm.expect(pm.response.json().telefono).to.eql('3000000001'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A67 Publicar mi oferta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idTipoServicio\": {{idTipoServicioQA}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"12:00\",\n  \"ubicacion\": \"Oferta QA\",\n  \"valorOfertado\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTipoServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201',()=>pm.response.to.have.status(201));",
+                  "if(pm.response.code===201)pm.collectionVariables.set('idPublicacionQA',pm.response.json().idServicio);pm.test('Estado inicial',()=>pm.expect(pm.response.json().estado.nombreEstado).to.eql('Publicado'));pm.test('Sin correo personal',()=>pm.expect(pm.response.json().empleador.usuario).not.to.have.property('correo'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A66 Consultar mis publicaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones?pagina=0&tamano=2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Página propia',()=>pm.expect(pm.response.json().contenido.some(s=>s.idServicio===Number(pm.collectionVariables.get('idPublicacionQA')))).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A65 Buscar con filtros y paginación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/buscar?busqueda=Oferta&pagina=0&tamano=2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Página estable',()=>{const p=pm.response.json();pm.expect(p).to.have.keys('contenido','pagina','tamano','totalElementos','totalPaginas');pm.expect(p.contenido.length).to.be.at.most(2);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A68 Editar mi oferta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones/{{idPublicacionQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idTipoServicio\": {{idTipoServicioQA}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"12:00\",\n  \"ubicacion\": \"Oferta QA actualizada\",\n  \"valorOfertado\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPublicacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Ubicación actualizada',()=>pm.expect(pm.response.json().ubicacion).to.eql('Oferta QA actualizada'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Empleador no puede listar todas las cuentas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A58 Login otro empleador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoOtroEmpleador}}\",\n  \"contrasena\": \"{{clavePrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"correoOtroEmpleador\",\"clavePrueba\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Usuario sin hash',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil del segundo empleador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('idPerfilOtro',pm.response.json().idEmpleador);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No modifica una oferta ajena",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones/{{idPublicacionQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idTipoServicio\": {{idTipoServicioQA}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"12:00\",\n  \"ubicacion\": \"Oferta QA\",\n  \"valorOfertado\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPublicacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No cancela una oferta ajena",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones/{{idPublicacionQA}}/cancelar"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPublicacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A58 Login empleador propietario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoEmpleador}}\",\n  \"contrasena\": \"{{clavePrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"correoEmpleador\",\"clavePrueba\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Usuario sin hash',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A69 Cancelar mi oferta",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones/{{idPublicacionQA}}/cancelar"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPublicacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Cancelada',()=>pm.expect(pm.response.json().estado.nombreEstado).to.eql('Cancelado'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No edita una oferta cancelada",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones/{{idPublicacionQA}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idTipoServicio\": {{idTipoServicioQA}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"12:00\",\n  \"ubicacion\": \"Oferta QA\",\n  \"valorOfertado\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPublicacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409',()=>pm.response.to.have.status(409));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Perfil del trabajador y errores de login",
+      "item": [
+        {
+          "name": "A58 Login trabajador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoTrabajador}}\",\n  \"contrasena\": \"{{clavePrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"correoTrabajador\",\"clavePrueba\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Usuario sin hash',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A61 Consultar mi perfil trabajador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('idPerfilTrabajador',pm.response.json().idTrabajador);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A62 Editar mi perfil trabajador",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trabajador/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"experiencia\": \"Experiencia propia QA\",\n  \"disponibilidad\": \"Mañanas\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Experiencia actualizada',()=>pm.expect(pm.response.json().experiencia).to.eql('Experiencia propia QA'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trabajador no puede publicar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/servicio/mis-publicaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idTipoServicio\": {{idTipoServicioQA}},\n  \"fecha\": \"{{fechaPrueba}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"12:00\",\n  \"ubicacion\": \"Oferta QA\",\n  \"valorOfertado\": 120000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login incorrecto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoTrabajador}}\",\n  \"contrasena\": \"Incorrecta123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401',()=>pm.response.to.have.status(401));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login incompleto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoTrabajador}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro incompleto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400',()=>pm.response.to.have.status(400));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Sin CSRF] Registro bloqueado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403',()=>pm.response.to.have.status(403));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Limpieza solo de los registros QA",
+      "item": [
+        {
+          "name": "A58 Login administrador para limpieza",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"contrasena\": \"{{adminContrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"adminCorreo\",\"adminContrasena\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Usuario sin hash',()=>pm.expect(pm.response.json()).not.to.have.property('contrasenaHash'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar oferta propia de esta corrida",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/{{idPublicacionQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPublicacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A55 Eliminar QA Pagos",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/pago/{{idPagoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPagoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Pagos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pago/{{idPagoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPagoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A50 Eliminar QA Contrataciones",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/contratacion/{{idContratacionQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idContratacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Contrataciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/contratacion/{{idContratacionQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idContratacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A45 Eliminar QA Postulaciones",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/postulacion/{{idPostulacionQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPostulacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Postulaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/postulacion/{{idPostulacionQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPostulacionQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A25 Eliminar QA Documentos de trabajadores",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/documentotrabajador/{{idDocumentoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idDocumentoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Documentos de trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/documentotrabajador/{{idDocumentoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idDocumentoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A40 Eliminar QA Servicios",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/{{idServicioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Servicios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/servicio/{{idServicioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A35 Eliminar QA Estados de servicio",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/estadoservicio/{{idEstadoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEstadoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Estados de servicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estadoservicio/{{idEstadoQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEstadoQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A30 Eliminar QA Tipos de servicio",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/tiposervicio/{{idTipoServicioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTipoServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Tipos de servicio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tiposervicio/{{idTipoServicioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTipoServicioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A20 Eliminar QA Trabajadores",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador/{{idTrabajadorQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Trabajadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador/{{idTrabajadorQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idTrabajadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A15 Eliminar QA Empleadores",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/{{idEmpleadorQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEmpleadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Empleadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/{{idEmpleadorQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idEmpleadorQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A10 Eliminar QA Usuarios",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/{{idUsuarioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idUsuarioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/{{idUsuarioQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idUsuarioQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A05 Eliminar QA Roles",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/rol/{{idRolQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  "pm.test('Sin cuerpo',()=>pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rol/{{idRolQA}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idRolQA\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404',()=>pm.response.to.have.status(404));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar perfil idPerfilEmpleador",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/{{idPerfilEmpleador}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPerfilEmpleador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar cuenta idCuentaEmpleador",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/{{idCuentaEmpleador}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idCuentaEmpleador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar perfil idPerfilOtro",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/empleador/{{idPerfilOtro}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPerfilOtro\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar cuenta idCuentaOtroEmpleador",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/{{idCuentaOtroEmpleador}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idCuentaOtroEmpleador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar perfil idPerfilTrabajador",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/trabajador/{{idPerfilTrabajador}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idPerfilTrabajador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar cuenta idCuentaTrabajador",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/{{idCuentaTrabajador}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if([\"idCuentaTrabajador\"].some(k=>!pm.variables.get(k))){pm.test('Datos previos disponibles',()=>pm.expect.fail('Faltan variables de la preparación'));pm.execution.skipRequest();}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Logout y rechazo de sesión ausente",
+      "item": [
+        {
+          "name": "A60 Cerrar sesión",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/logout"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204',()=>pm.response.to.have.status(204));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cuenta actual sin sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuario/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401',()=>pm.response.to.have.status(401));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preflight CORS de React",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://localhost:5173"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST"
+              },
+              {
+                "key": "Access-Control-Request-Headers",
+                "value": "X-CSRF-TOKEN"
+              }
+            ],
+            "url": "{{baseUrl}}/usuario/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('CORS con credenciales',()=>pm.expect(pm.response.headers.get('Access-Control-Allow-Credentials')).to.eql('true'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if(!['GET','HEAD','OPTIONS'].includes(pm.request.method)&&!pm.info.requestName.includes('[Sin CSRF]')){",
+          "pm.sendRequest({url:pm.variables.replaceIn('{{baseUrl}}/usuario/csrf'),method:'GET'},(error,r)=>{",
+          "pm.test('CSRF disponible',()=>{pm.expect(error).to.eql(null);pm.expect(r.code).to.eql(200);});",
+          "if(error||!r||r.code!==200){pm.execution.skipRequest();return;}const t=r.json();pm.request.headers.upsert({key:t.headerName,value:t.token});});}"
+        ]
+      }
+    }
+  ]
+}

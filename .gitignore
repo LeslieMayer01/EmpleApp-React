@@ -38,3 +38,4 @@ build/
 !.env.example
 *.log
 src/main/resources/application-local.properties
+.postman/
